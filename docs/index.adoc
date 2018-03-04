@@ -83,6 +83,7 @@ If a version is omitted, the version from the BOM will be used.
 
 == What's new in this version
 
+:!sectnums:
 === 2.1.0-SNAPSHOT
 Most of the standard modules have been baselined against Across 3.0.0 in this update.
 
@@ -271,7 +272,7 @@ Most of the standard modules have been baselined against Across 3.0.0 in this up
 
 |===
 
-
+:sectnums:
 == Dependency versions
 Across Platform BOM {across-platform-version} extends the *Spring IO Platform BOM {spring-platform-version}*.
 The base list of dependencies can be found in the {spring-platform-url}[Spring IO Platform documentation].
