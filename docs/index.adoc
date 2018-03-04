@@ -272,7 +272,6 @@ Most of the standard modules have been baselined against Across 3.0.0 in this up
 
 |===
 
-:sectnums:
 == Dependency versions
 Across Platform BOM {across-platform-version} extends the *Spring IO Platform BOM {spring-platform-version}*.
 The base list of dependencies can be found in the {spring-platform-url}[Spring IO Platform documentation].
@@ -329,3 +328,6 @@ Additionally Across platform BOM defines and overrides the following dependencie
 | org.thymeleaf.extras | thymeleaf-extras-java8time | {thymeleaf-extras-java8time}
 
 |===
+
+== Migration guides
+include::./migration/platform-2.0.x-to-2.1.x.adoc[]
