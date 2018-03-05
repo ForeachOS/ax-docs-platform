@@ -1,8 +1,9 @@
-= Across Platform BOM
-Arne Vandamme
-2.1.0-SNAPSHOT
+= +++ <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 82.9 95.7" width="40" style="margin-right: 10px"><path fill="#3CA873" d="M0 23.9l15.9-9.2 41.5 23.9-16 9.2"></path><path fill="#0093D8" d="M25.5 9.2L41.4 0l41.5 23.9-16 9.2"></path><path fill="#53DD99" d="M41.4 95.7l16-9.3V38.6l-16 9.2"></path><path fill="#22CEFA" d="M66.9 80.9l16-9.2V23.9l-16 9.2"></path><path fill="#257A50" d="M12.5 64.5L28.9 55l-16.4-9.4"></path><path fill="#4DBC86" d="M12.5 64.5L28.9 74V55"></path></svg> +++ Across Platform BOM
 :toc: left
-:sectanchors:
+:toc-title: Across Platform BOM
+:toclevels: 2
+:sectnums:
+:chapter-number: 0
 :across-platform-version: 2.1.0-SNAPSHOT
 :spring-platform-version: Brussels-SR7
 :spring-platform-url: http://docs.spring.io/platform/docs/Brussels-SR7/reference/htmlsingle/#appendix-dependency-versions
@@ -37,10 +38,9 @@ Arne Vandamme
 :asm-web-cms-version: 0.0.4-SNAPSHOT
 :ais-image-server-version: 4.0.0.RELEASE
 
---
-Copyright (C) 2014-2017 +
-[small]#Copies of this document may be made for your own use and for distribution to others, provided that you do not charge any fee for such copies and further provided that each copy contains this Copyright Notice, whether distributed in print or electronically.#
---
+include::../ax-docs-shared/copyright.adoc[]
+
+:!sectnums:
 
 [abstract]
 == About
@@ -83,9 +83,9 @@ If a version is omitted, the version from the BOM will be used.
 
 == What's new in this version
 
-:!sectnums:
 === 2.1.0-SNAPSHOT
 Most of the standard modules have been baselined against Across 3.0.0 in this update.
+See the link:migration-2.0.x-to-2.1.x.html[migration guide] for upgrading from Across Platform 2.0.x.
 
 .Across dependency upgrades
 
@@ -330,4 +330,6 @@ Additionally Across platform BOM defines and overrides the following dependencie
 |===
 
 == Migration guides
-include::./migration/platform-2.0.x-to-2.1.x.adoc[]
+The following migration guides are available:
+
+* link:./migration-2.0.x-to-2.1.x.html[Across Platform 2.0.x to 2.1.x]
