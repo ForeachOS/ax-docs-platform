@@ -7,21 +7,27 @@
 :docinfo1:
 
 :docs-across-base-url: https://across-docs.foreach.be/across/3.0.0-SNAPSHOT/reference
+:docs-asm-ahm-url-3_0_0: https://across-docs.foreach.be/across-standard-modules/AcrossHibernateModule/3.0.0-SNAPSHOT/reference/#_3_0_0_snapshot
+:docs-asm-em-url-3_0_0: https://across-docs.foreach.be/across-standard-modules/EntityModule/3.0.0-SNAPSHOT/reference/#3-0-0-snapshot
+:docs-asm-awm-url-3_0_0: https://across-docs.foreach.be/across-standard-modules/AdminWebModule/3.0.0-SNAPSHOT/reference/#_3_0_0_snapshot
+:docs-asm-bum-url-2_0_0: https://across-docs.foreach.be/across-standard-modules/BootstrapUiModule/2.0.0-SNAPSHOT/reference/#_2_0_0_snapshot
+
 :docs-spring-boot: {docs-across-base-url}/spring-boot.html#spring-boot
 :docs-across-core: {docs-across-base-url}/index.html
 :docs-across-core-events: {docs-across-base-url}/developing-applications.html#events
+:docs-across-web-menus: {docs-across-base-url}/across-web.html#menu-infrastructure
 
 :!numbered:
 
 [abstract]
-This migration guide describes the most common steps necessary when upgrading from Platform BOM 2.0.x to 2.1.x.
+This guide describes the most common steps necessary when upgrading from Platform BOM 2.0.x to 2.1.x.
 
 == Migrating to 2.1.0
 Platform 2.1.0 is bound to Across 3.0.0, which is the first release with the `across-autoconfigure` artifact and builds more on top of Spring Boot.
 Upgrading to Platform 2.1.0 usually requires you to make some configuration and code changes to your applications.
 
 NOTE: This guide is not a full overview of all new features and changes in Across or any of its modules.
-It mainly focuses upgrade related changes: usually breaking changes or new features that impact application/module configuration.
+It mainly focuses on upgrade related changes: usually breaking changes or new features that impact application/module configuration.
 
 === Across Core
 ==== Auto-configuration support
@@ -144,6 +150,8 @@ public void handle( MyEvent myEvent ) {
 
 See the <<deprecations,deprecations>> section for a list of the event-related deprecations and how to replace them.
 
+WARNING: Generic event types are handled differently with the new system, where in the past `SomeEvent<Object>` would have worked, the only working (and more correct) signature is now `SomeEvent<? extends Object>`.
+
 .New available features
 Due to this refactoring some new features are now also available:
 
@@ -233,22 +241,106 @@ The following is a list of classes that have been deprecated in Across 3.0.0:
   Use the Spring Framework `ApplicationEventPublisher` instead.
 
 === Across Web
+This chapter lists some important - possibly breaking - changes in Across Web support (provided by AcrossWebModule).
 
-==== PrefixingHandlerMappingConfigurer
+==== Interceptor configuration
+`PrefixingHandlerMappingConfigurer` can no longer be applied to the default AcrossWebModule, use a regular `WebMvcConfigurer` to add interceptors instead.
+
+* different prefixed handler mappings (eg. AdminWebModule) still require the use of `PrefixingHandlerMappingConfigurer` for adding interceptors
+* if you want to add an interceptor to all controllers, you should implement both `WebMvcConfigurer` and `PrefixingHandlerMappingConfigurer`
+
 ==== Menu building
+The menu infrastructure support has been optimized to fix some technical and functional issues with the moving of path based menu items.
+Some code has been deprecated and still works as before, but new improved features have been added along side.
+
+Most important (breaking) changes:
+
+* `MenuSelector` factory methods have been moved from the `Menu` to `MenuSelector` class
+* some rarely used methods on `PathBasedMenuBuilder`, `PathBasedMenuItemBuilder` and `BuildMenuEvent` have been removed
+* `BuildMenuFinishedEvent` has been removed, modules requiring this functionality should now register a `Menu` post-processor on the `BuildMenuEvent` instead
+* renamed methods on `BuildMenuEvent`:
+** `setSelector()` -> `setMenuSelector()`, `getSelector()` -> `getMenuSelector()`
+** `forMenu()` -> `isForMenuOfType()`
+** the unreliable `move()` method for menu items has been deprecated, use the new `changeItemPath()` or `item().changePathTo()` instead
+
+The link:{docs-across-web-menus}[reference documentation regarding menu building] has been rewritten completely, we strongly advise you to read the documentation and update your code accordingly.
 
 === Across Standard Modules
 The following section applies to the breaking changes in the standard modules.
 These instructions are only relevant if you use these modules in your applications.
 
 ==== AcrossHibernateJpaModule
+The module has undergone significant changes to increase compatibility with the Spring Data JPA starter.
+When plugging a single AcrossHibernateJpaModule in an application it will now transparently take over the starter JPA support on the application module.
+
+Most important changes include:
+
+* a `PlatformTransactionManager` is now always created
+** the configuration property to disable the `PlatformTransactionManager` has been removed
+* in addition a `TransactionTemplate` bean is now also created and exposed
+* it’s now also possible to specify packages to scan for entities by injecting an `@EntityScan` annotated class into the AcrossHibernateJpaModule
+
+See the link:{docs-asm-ahm-url-3_0_0}[AcrossHibernateJpaModule documentation] for a full list of release notes.
 
 ==== SpringSecurityModule
+Any class wanting to change the `AuthenticationManagerBuilder` must now be annotated with `@EnableGlobalAuthentication`.
+Configuration registered as module extension in SpringSecurityModule and simply auto-wiring the `AuthenticationManagerBuilder` will no longer work.
+
+.Example global authentication manager customization
+[source,java]
+----
+@ModuleConfiguration(SpringSecurityModule.NAME)
+@EnableGlobalAuthentication                     // required
+public class AuthenticationConfiguration
+{
+	@Autowired
+	public void configureGlobal( AuthenticationManagerBuilder auth ) throws Exception {
+		auth.inMemoryAuthentication()
+		    .withUser( "admin" ).password( "admin" )
+		    .authorities( new SimpleGrantedAuthority( "access administration" ) );
+	}
+}
+----
 
 ==== BootstrapUiModule
+BootstrapUiModule has mainly been updated with new features.
+The following are the most important updates from a migration point of view:
+
+.BootstrapUiFactory
+Direct use of `BootstrapUiFactory` or `BootstrapUiComponentFactory` is now discouraged, these interfaces have been deprecated.
+Use the stateless `BootstrapUiBuilders` facade instead.
+
+.FormGroupElement
+`FormGroupElement` has been refactored to support more descriptions:
+
+* `tooltip` can be set which will be added to the label - after the label text and required indicator
+* a `descriptionBlock` can be set which will be added to the group before the control
+* a `helpBlock` can be set which will be added to the group after the control
+
+The property `renderHelpBlockBeforeControl` has been removed as the `descriptionBlock` is always rendered before the control, and the `helpBlock` always after the control.
+
+See the link:{docs-asm-bum-url-2_0_0}[BootstrapUiModule documentation] for a full list of release notes.
+
+==== AdminWebModule
+`EntityAdminMenu` and `EntityAdminMenuEvent` have been deprecated.
+These classes were never supposed to be in the AdminWebModule package space, as they belong to EntityModule functionality.
+
+New implementations have been added to EntityModule.
+Migration is strongly advised, though no code changes are required in this release.
+
+See the link:{docs-asm-awm-url-3_0_0}[AdminWebModule documentation] for a full list of release notes.
 
 ==== EntityModule
-message codes on form group
-addition of `EntityAdminMenu`and `EntityAdminMenuEvent`
+EntityModule has mainly been updated with new features.
+The following are the most important updates from a migration point of view:
 
+* EntityModule no longer creates its own `Validator` instance, the `registerForMvc` related settings have been removed.
+The validator used by EntityModule is always the default MVC validator.
+* New implementations of `EntityAdminMenu` and `EntityAdminMenuEvent` to replace the equivalent classes from AdminWebModule.
+You may consider this mostly a package rename for these classes.
+* The `descriptionBlock` of a `FormGroupElement` for a property is now always rendered before the control, in accordance with the changes in BootstrapUiModule.
+New message codes have been added to support both `tooltip` and `helpBlock` for a property.
+The same message codes are also available for a `FieldsetFormElement`.
+* By default `descriptionBlock`, `helpBlock` and `tooltip` are only added to a `FormGroupElement` or `FieldsetFormElement` in `ViewElementMode.FORM_WRITE`.
 
+See the link:{docs-asm-em-url-3_0_0}[EntityModule documentation] for a full list of release notes.

@@ -144,7 +144,7 @@ See the link:migration-2.0.x-to-2.1.x.html[migration guide] for upgrading from A
 
 |Spring Platform
 |Athens-SR6
-|Brussels-SR6
+|Brussels-SR7
 
 |Thymeleaf
 |3.0.7.RELEASE
