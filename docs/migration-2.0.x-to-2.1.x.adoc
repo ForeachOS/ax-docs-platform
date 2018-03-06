@@ -14,6 +14,7 @@
 
 :docs-spring-boot: {docs-across-base-url}/spring-boot.html#spring-boot
 :docs-across-core: {docs-across-base-url}/index.html
+:docs-across-spring-compatibility-ax-conf: {docs-across-base-url}/spring-boot.html#across-configuration
 :docs-across-core-events: {docs-across-base-url}/developing-applications.html#events
 :docs-across-web-menus: {docs-across-base-url}/across-web.html#menu-infrastructure
 
@@ -58,6 +59,8 @@ Some useful additions now available without additional configuration:
 * Spring Session support
 * Swagger2 support
 
+NOTE: When adding the across autoconfigurate artifact to your application, Spring Data Web support is enabled, which causes all repositories to be exposed as well.
+
 ===== Cleanup @AcrossApplication
 Review the release notes and Spring Boot compatibility documentation and remove imports and annotations from your `@AcrossApplication` class.
 
@@ -83,7 +86,7 @@ public class MyApplication
 }
 ----
 
-<1> It is no longer to include the default Across standard modules packages when you want to add your own packages for module scanning.
+<1> It is no longer necessary to include the default Across standard modules packages when you want to add your own packages for module scanning.
 The default standard modules package will always be included.
 
 <2> Several annotations and configuration imports can simply be dropped as `across-autoconfigure` takes care of the configuration now.
@@ -98,7 +101,7 @@ If you have any of the following annotations in any of your modules or on your a
 Across 3.0.0 externalizes some of its configuration in a `META-INF/across.configuration` properties file.
 This is especially used for auto-configuration and configuration validation settings.
 
-Please see the link:{docs-across-core}[Across reference documentation] for a full description of the configuration file and what you can do with it.
+Please see the link:{docs-across-spring-compatibility-ax-conf}[Across reference documentation section] for a full description of the configuration file and what you can do with it.
 
 ==== Configuration validation
 Across now attempts to validate your configuration when starting.
@@ -129,7 +132,7 @@ Instead of the Across-specific `@Event`, the Spring Framework `@EventListener` s
 
 Apart from how events are treated internally, there is no difference anymore in handling Across specific or regular Spring Framework events.
 
-Most old event related classes have simply been deprecated, and breaking changes kept as limited as possible.
+Most old event related classes have simply been deprecated, and breaking changes have been kept as limited as possible.
 In simple applications no changes would be required for this release.
 
 .Example @Event to @EventListener
@@ -251,7 +254,7 @@ This chapter lists some important - possibly breaking - changes in Across Web su
 
 ==== Menu building
 The menu infrastructure support has been optimized to fix some technical and functional issues with the moving of path based menu items.
-Some code has been deprecated and still works as before, but new improved features have been added along side.
+Some code has been deprecated and still works as before, alongside the addition of new improved features.
 
 Most important (breaking) changes:
 
@@ -324,9 +327,11 @@ See the link:{docs-asm-bum-url-2_0_0}[BootstrapUiModule documentation] for a ful
 ==== AdminWebModule
 `EntityAdminMenu` and `EntityAdminMenuEvent` have been deprecated.
 These classes were never supposed to be in the AdminWebModule package space, as they belong to EntityModule functionality.
+To migrate, simply rename the import package from `com.foreach.across.modules.adminweb.menu` to `com.foreach.across.modules.entity.views.menu`.
 
 New implementations have been added to EntityModule.
 Migration is strongly advised, though no code changes are required in this release.
+
 
 See the link:{docs-asm-awm-url-3_0_0}[AdminWebModule documentation] for a full list of release notes.
 
