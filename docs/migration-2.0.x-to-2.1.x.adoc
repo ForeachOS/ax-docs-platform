@@ -126,6 +126,42 @@ We strongly advise you to leave it on during development mode as it can help you
 It's possible to configure your own illegal configurations in the `META-INF/across.configuration` file.
 This is especially useful for shared modules that activate application-level features.
 
+==== Multiple datasources
+If your application has multiple datasources, it is now required that one of them is marked as `@Primary`.
+It is best to have a specific datasoure named `acrossDataSource` as well to mark the datasource that should be used for the core Across schema and the standard modules.
+
+Though not strictly required, you usually want to mark the `acrossDataSource` as the `@Primary` datasource.
+
+.Example multiple datasource configuration with Spring Boot
+[source,java]
+----
+@Bean
+@Primary
+@ConfigurationProperties("app.datasource.across")
+public DataSourceProperties acrossDataSourceProperties() {
+    return new DataSourceProperties();
+}
+
+@Bean
+@Primary
+@ConfigurationProperties("app.datasource.across")
+public DataSource acrossDataSource() {
+    return acrossDataSourceProperties().initializeDataSourceBuilder().build();
+}
+
+@Bean
+@ConfigurationProperties("app.datasource.bar")
+public DataSourceProperties barDataSourceProperties() {
+    return new DataSourceProperties();
+}
+
+@Bean
+@ConfigurationProperties("app.datasource.bar")
+public DataSource barDataSource() {
+    return barDataSourceProperties().initializeDataSourceBuilder().build();
+}
+----
+
 ==== New event handling
 The internal event handling system has been entirely rewritten and now builds on top of the default Spring Framework event handling infrastructure.
 Instead of the Across-specific `@Event`, the Spring Framework `@EventListener` should now be used.
@@ -278,10 +314,16 @@ When plugging a single AcrossHibernateJpaModule in an application it will now tr
 
 Most important changes include:
 
+* the default physical naming strategy being used by Hibernate has changed from a Hibernate default to a Spring Boot default
+** this can cause generated queries to be wrong (for example when having a reserved keyword as a table name)
+** in case of problems, you can revert to the old strategy by setting `acrossHibernate.hibernate.naming.physical-strategy=org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl`
 * a `PlatformTransactionManager` is now always created
 ** the configuration property to disable the `PlatformTransactionManager` has been removed
 * in addition a `TransactionTemplate` bean is now also created and exposed
 * it’s now also possible to specify packages to scan for entities by injecting an `@EntityScan` annotated class into the AcrossHibernateJpaModule
+* the default AcrossHibernateJpaModule will expose its relevant beans as primary unless specified otherwise
+** any module can take over the primary role by setting `acrossHibernate.primary=false` and `myModule.primary=true`
+** the primary module will also create a `transactionManager` and `transationTemplate` alias for the corresponding beans it exposes
 
 See the link:{docs-asm-ahm-url-3_0_0}[AcrossHibernateJpaModule documentation] for a full list of release notes.
 
