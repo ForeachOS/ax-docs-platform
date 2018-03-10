@@ -389,5 +389,9 @@ You may consider this mostly a package rename for these classes.
 New message codes have been added to support both `tooltip` and `helpBlock` for a property.
 The same message codes are also available for a `FieldsetFormElement`.
 * By default `descriptionBlock`, `helpBlock` and `tooltip` are only added to a `FormGroupElement` or `FieldsetFormElement` in `ViewElementMode.FORM_WRITE`.
+* The behaviour for control name prefixing when using an `EntityViewCommand` has changed.
+Controls are prefixed with `entity.` only if there is an additional builder context attribute set to `true` (attribute name `EntityPropertyControlNamePostProcessor.PREFIX_CONTROL_NAMES`).
+This only done by default in the `PropertyRenderingViewProcessor`, used by the default entity views.
+This change can cause side effects in existing custom forms, developers are encouraged to review those.
 
 See the link:{docs-asm-em-url-3_0_0}[EntityModule documentation] for a full list of release notes.
