@@ -305,6 +305,15 @@ Most important (breaking) changes:
 
 The link:{docs-across-web-menus}[reference documentation regarding menu building] has been rewritten completely, we strongly advise you to read the documentation and update your code accordingly.
 
+==== Multipart uploads
+The `MultipartProperties` from Spring Boot are now being used for multipart configuration.
+This means different property names should be used for custom configuration.
+
+* replace `acrossWebModule.multipart.auto-configure` with `spring.http.multipart.enabled`
+* replace `acrossWebModule.multipart.settings.*` with the equivalent `spring.http.multipart.*` properties
+
+If you do not have custom settings, the upgrade should have no impact.
+
 === Across Standard Modules
 The following section applies to the breaking changes in the standard modules.
 These instructions are only relevant if you use these modules in your applications.
