@@ -341,7 +341,7 @@ See the link:{docs-asm-ahm-url-3_0_0}[AcrossHibernateJpaModule documentation] fo
 SpringSecurityModule now re-uses Spring Boot security configuration and inspects `SecurityProperties` for default settings.
 As a result, additional security might be activated in your application, where previously it was not (see below).
 
-There are now more security filters applied, with possibly with different ordering than before.
+There are now more security filters applied, possibly with a different ordering than before.
 It is advised to review and test the security configuration of your applications, to ensure it still works as expected.
 
 .Basic authentication
