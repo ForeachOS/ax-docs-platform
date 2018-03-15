@@ -11,6 +11,7 @@
 :docs-asm-em-url-3_0_0: https://across-docs.foreach.be/across-standard-modules/EntityModule/3.0.0-SNAPSHOT/reference/#3-0-0-snapshot
 :docs-asm-awm-url-3_0_0: https://across-docs.foreach.be/across-standard-modules/AdminWebModule/3.0.0-SNAPSHOT/reference/#_3_0_0_snapshot
 :docs-asm-bum-url-2_0_0: https://across-docs.foreach.be/across-standard-modules/BootstrapUiModule/2.0.0-SNAPSHOT/reference/#_2_0_0_snapshot
+:docs-asm-ssm-url-3_0_0: https://across-docs.foreach.be/across-standard-modules/SpringSecurityModule/3.0.0-SNAPSHOT/reference/#_3_0_0_snapshot
 
 :docs-spring-boot: {docs-across-base-url}/spring-boot.html#spring-boot
 :docs-across-core: {docs-across-base-url}/index.html
@@ -328,6 +329,20 @@ Most important changes include:
 See the link:{docs-asm-ahm-url-3_0_0}[AcrossHibernateJpaModule documentation] for a full list of release notes.
 
 ==== SpringSecurityModule
+SpringSecurityModule now re-uses Spring Boot security configuration and inspects `SecurityProperties` for default settings.
+As a result, additional security might be activated in your application, where previously it was not (see below).
+
+There are now more security filters applied, with possibly with different ordering than before.
+It is advised to review and test the security configuration of your applications, to ensure it still works as expected.
+
+.Basic authentication
+It is now possible to activate basic authentication for an entire application by setting `security.basic.enabled` to `true`.
+Unlike a standard Spring Boot application, this is not enabled by default in an Across application.
+The main reason for the latter is to ensure backwards compatibility with previous releases.
+
+The different `SecurityProperties` allow you to configure a default user, password and role.
+
+.Global AuthenticationManager
 Any class wanting to change the `AuthenticationManagerBuilder` must now be annotated with `@EnableGlobalAuthentication`.
 Configuration registered as module extension in SpringSecurityModule and simply auto-wiring the `AuthenticationManagerBuilder` will no longer work.
 
@@ -346,6 +361,15 @@ public class AuthenticationConfiguration
 	}
 }
 ----
+
+.Integration with Actuator
+Actuator endpoints are now always secured by default, unless you explicitly set `management.security.enabled` to `false`.
+Previously the security configuration for Actuator was simply ignored, whereas now it should be applied as expected.
+
+.Integration with H2 Console
+The H2 Web Console (usually `/h2-console`) will now be secured by default, unless you explicitly set `security.basic.enabled` to `false`.
+
+See the link:{docs-asm-ssm-url-3_0_0}[SpringSecurityModule documentation] for a full list of release notes.
 
 ==== BootstrapUiModule
 BootstrapUiModule has mainly been updated with new features.
