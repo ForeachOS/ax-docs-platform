@@ -414,6 +414,8 @@ See the link:{docs-asm-awm-url-3_0_0}[AdminWebModule documentation] for a full l
 EntityModule has mainly been updated with new features.
 The following are the most important updates from a migration point of view:
 
+* the module classpath dependencies have been reworked, allowing EntityModule to be used without either AdminWebModule or BootstrapUiModule (with limited feature availability)
+** as a result those dependencies are no longer pulled in transitively, this might require you to add them manually to existing applications
 * EntityModule no longer creates its own `Validator` instance, the `registerForMvc` related settings have been removed.
 The validator used by EntityModule is always the default MVC validator.
 * New implementations of `EntityAdminMenu` and `EntityAdminMenuEvent` to replace the equivalent classes from AdminWebModule.
