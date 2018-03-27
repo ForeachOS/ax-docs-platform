@@ -6,7 +6,7 @@
 :chapter-number: 0
 :docinfo1:
 
-:docs-across-base-url: https://across-docs.foreach.be/across/3.0.0-SNAPSHOT/reference
+:docs-across-base-url: https://across-docs.foreach.be/across/3.0.0.RELEASE/reference
 :docs-asm-ahm-url-3_0_0: https://across-docs.foreach.be/across-standard-modules/AcrossHibernateModule/3.0.0-SNAPSHOT/reference/#_3_0_0_snapshot
 :docs-asm-em-url-3_0_0: https://across-docs.foreach.be/across-standard-modules/EntityModule/3.0.0-SNAPSHOT/reference/#3-0-0-snapshot
 :docs-asm-awm-url-3_0_0: https://across-docs.foreach.be/across-standard-modules/AdminWebModule/3.0.0-SNAPSHOT/reference/#_3_0_0_snapshot

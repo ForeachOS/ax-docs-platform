@@ -7,7 +7,7 @@
 :across-platform-version: 2.1.0-SNAPSHOT
 :spring-platform-version: Brussels-SR7
 :spring-platform-url: http://docs.spring.io/platform/docs/Brussels-SR7/reference/htmlsingle/#appendix-dependency-versions
-:across-version: 3.0.0-SNAPSHOT
+:across-version: 3.0.0.RELEASE
 :across-autoconfigure-version: 1.0.0-SNAPSHOT
 :foreach-common-version: 1.1
 :commons-collections-version: 4.1
@@ -98,7 +98,7 @@ See the link:migration-2.0.x-to-2.1.x.html[migration guide] for upgrading from A
 
 |Across
 |2.1.1.RELEASE
-|3.0.0-SNAPSHOT
+|3.0.0.RELEASE
 
 |AcrossHibernateJpaModule
 |2.0.1.RELEASE
