@@ -98,7 +98,7 @@ See the link:migration-2.0.x-to-2.1.x.html[migration guide] for upgrading from A
 
 |Across
 |2.1.1.RELEASE
-|3.0.0-SNAPSHOT
+|3.0.0.RELEASE
 
 |AcrossHibernateJpaModule
 |2.0.1.RELEASE

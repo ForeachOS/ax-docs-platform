@@ -6,7 +6,7 @@
 :chapter-number: 0
 :docinfo1:
 
-:docs-across-base-url: https://across-docs.foreach.be/across/3.0.0-SNAPSHOT/reference
+:docs-across-base-url: https://across-docs.foreach.be/across/3.0.0.RELEASE/reference
 :docs-asm-ahm-url-3_0_0: https://across-docs.foreach.be/across-standard-modules/AcrossHibernateModule/3.0.0-SNAPSHOT/reference/#_3_0_0_snapshot
 :docs-asm-em-url-3_0_0: https://across-docs.foreach.be/across-standard-modules/EntityModule/3.0.0-SNAPSHOT/reference/#3-0-0-snapshot
 :docs-asm-awm-url-3_0_0: https://across-docs.foreach.be/across-standard-modules/AdminWebModule/3.0.0-SNAPSHOT/reference/#_3_0_0_snapshot
@@ -310,9 +310,19 @@ The `MultipartProperties` from Spring Boot are now being used for multipart conf
 This means different property names should be used for custom configuration.
 
 * replace `acrossWebModule.multipart.auto-configure` with `spring.http.multipart.enabled`
-* replace `acrossWebModule.multipart.settings.*` with the equivalent `spring.http.multipart.*` properties
+* replace `acrossWebModule.multipart.settings.\*` with the equivalent `spring.http.multipart.*` properties
 
-If you do not have custom settings, the upgrade should have no impact.
+Some default settings - for example maximum file size - might have changed as well.
+
+.Example changing the maximum multipart file size
+[source,java]
+----
+spring:
+  http:
+    multipart:
+      max-file-size: 10MB
+----
+
 
 === Across Standard Modules
 The following section applies to the breaking changes in the standard modules.
@@ -407,13 +417,16 @@ To migrate, simply rename the import package from `com.foreach.across.modules.ad
 New implementations have been added to EntityModule.
 Migration is strongly advised, though no code changes are required in this release.
 
-
 See the link:{docs-asm-awm-url-3_0_0}[AdminWebModule documentation] for a full list of release notes.
 
 ==== EntityModule
 EntityModule has mainly been updated with new features.
+See the link:{docs-asm-em-url-3_0_0}[EntityModule documentation] for a full list of release notes.
+
 The following are the most important updates from a migration point of view:
 
+* the module classpath dependencies have been reworked, allowing EntityModule to be used without either AdminWebModule or BootstrapUiModule (with limited feature availability)
+** as a result those dependencies are no longer pulled in transitively, this might require you to add them manually to existing applications
 * EntityModule no longer creates its own `Validator` instance, the `registerForMvc` related settings have been removed.
 The validator used by EntityModule is always the default MVC validator.
 * New implementations of `EntityAdminMenu` and `EntityAdminMenuEvent` to replace the equivalent classes from AdminWebModule.
@@ -427,4 +440,130 @@ Controls are prefixed with `entity.` only if there is an additional builder cont
 This only done by default in the `PropertyRenderingViewProcessor`, used by the default entity views.
 This change can cause side effects in existing custom forms, developers are encouraged to review those.
 
-See the link:{docs-asm-em-url-3_0_0}[EntityModule documentation] for a full list of release notes.
+===== Linking to entity views
+The new version introduces a new approach for linking to entity views, which might result in breaking changes in some application.
+The `EntityLinkBuilder` implementation has been deprecated.
+A new `EntityViewLinks` component has been added as an entry point for building links to entity views.
+
+An `EntityConfiguration` contains an `EntityViewLinkBuilder` attribute that returns a link builder for that particular entity type.
+The older `EntityLinkBuilder` attribute is also kept for backwards compatibility, but returns the same instance of the newer implementation.
+
+It is best to review your code and make changes accordingly, even though the new implementation has been kept as backwards compatible as possible.
+
+Within the context of rendering an entity view, you can make the following changes:
+
+.Comparing old and new link building
+[source,java]
+----
+String url;
+EntityViewContext entityViewContext;
+MyEntity entity;
+
+// -- Retrieving the link builder for the entity type
+EntityLinkBuilder oldBuilder = entityViewContext.getLinkBuilder();      // OLD
+EntityViewLinkBuilder newBuilder = entityViewContext.getLinkBuilder();  // NEW
+
+// -- Linking to the list view
+// url: /entities/myEntity
+url = oldBuilder.overview();                                            // OLD
+url = newBuilder.listView().toUriString();                              // NEW
+
+// -- Linking to the create view
+// url: /entities/myEntity/create
+url = oldBuilder.create();                                              // OLD
+url = newBuilder.createView().toUriString();                            // NEW
+
+// -- Linking to the update view
+// url: /entities/myEntity/1/update
+url = oldBuilder.update( entity );                                      // OLD
+url = newBuilder.forInstance( entity ).updateView().toUriString();      // NEW
+
+// -- Linking to a custom view
+// url: /entities/myEntity/1?view=customViewName
+url = UriComponentsBuilder.fromUriString( oldBuilder.view( entity ) )
+                          .queryParam( "view", "customViewName" )
+                          .toUriString();                               // OLD
+
+url = newBuilder.forInstance( entity )
+                .withViewName( "customViewName" )
+                .toUriString();                                         // NEW
+
+// -- Linking to an association list view
+// url: /entities/myEntity/1/associations/associatedItems/
+url = association.getTargetEntityConfiguration()
+                 .getAttribute( EntityLinkBuilder.class )
+                 .asAssociationFor( oldBuilder, entity )
+                 .overview();                                           // OLD
+
+url = newBuilder.forInstance( entity )
+                .association( AssociatedItem.class )
+                .toUriString();                                         // NEW
+
+// -- Linking to a single associated item update view
+// url: /entities/myEntity/1/associations/associatedItems/2/update
+url = association.getTargetEntityConfiguration()
+                 .getAttribute( EntityLinkBuilder.class )
+                 .asAssociationFor( oldBuilder, entity )
+                 .update( associatedItem );                             // OLD
+
+url = newBuilder.forInstance( entity )
+                .association( associatedItem )
+                .updateView()
+                .toUriString();                                         // NEW
+----
+
+The new `EntityViewLinkBuilder` has a more fluent API that allows customizing the URL before converting it to a `String`.
+It also has some short-hand methods for commonly used entity view related parameters.
+Every method call results in a new instance being created, so you will not make inadvertent changes to an existing link builder.
+
+.Useful methods of the new EntityViewLinkBuilder
+[source,java]
+----
+// append a custom path segment
+.slash( String path )
+// append query parameter
+.withQueryParam( String param, Object... values )
+// set a from URL ('from' query parameter)
+.withFromUrl( String url )
+// set a partial fragment ('_partial' query parameter)
+.withPartial( String fragment )
+// set a custom view name ('view' query parameter)
+.withViewName( String viewName )
+
+// return the unprocessed URI (eg. '@adminWeb:/entities/myEntity')
+.toString()
+// returning the processed URI (eg. '/admin/entities/myEntity')
+.toUriString()
+// create a new UriComponentsBuilder with the settings
+.toUriComponentsBuilder()
+// return as URI
+.toUri()
+// return as UriComponents
+.toUriComponents()
+
+// return the original EntityViewLinks
+.root()
+----
+
+A new `EntityViewLinks` component is also available to generate links to entity views from anywhere in your code.
+
+.Using EntityViewLinks central component
+[source,java]
+----
+@Autowired
+EntityViewLinks links;
+
+// link to a list view
+links.linkTo( MyEntity.class ).toUriString();
+
+// link to single entity view
+links.linkTo( MyEntity.class ).forInstance( myEntity ).toUriString();
+links.linkTo( MyEntity.class ).withId( 1 ).toUriString();
+// or shorter...
+links.linkTo( myEntity ).toUriString();
+links.linkTo( myEntity ).updateView().toUriString();
+
+// link to associations
+links.linkTo( myEntity ).association( AssociatedEntity.class ).toUriString();
+links.linkTo( myEntity ).association( associatedItem ).toUriString();
+----
