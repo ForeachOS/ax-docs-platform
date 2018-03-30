@@ -4,11 +4,11 @@
 :toclevels: 2
 :sectnums:
 :chapter-number: 0
-:across-platform-version: 2.1.0-SNAPSHOT
+:across-platform-version: 2.1.0.RELEASE
 :spring-platform-version: Brussels-SR7
 :spring-platform-url: http://docs.spring.io/platform/docs/Brussels-SR7/reference/htmlsingle/#appendix-dependency-versions
-:across-version: 3.0.0-SNAPSHOT
-:across-autoconfigure-version: 1.0.0-SNAPSHOT
+:across-version: 3.0.0.RELEASE
+:across-autoconfigure-version: 1.0.0.RELEASE
 :foreach-common-version: 1.1
 :commons-collections-version: 4.1
 :commons-lang-version: 3.7
@@ -18,24 +18,24 @@
 :thymeleaf-version: 3.0.9.RELEASE
 :thymeleaf-extras-springsecurity4: 3.0.2.RELEASE
 :thymeleaf-extras-java8time: 3.0.1.RELEASE
-:asm-across-hibernate-module-version: 3.0.0-SNAPSHOT
-:asm-spring-security-module-version: 3.0.0-SNAPSHOT
+:asm-across-hibernate-module-version: 3.0.0.RELEASE
+:asm-spring-security-module-version: 3.0.1.RELEASE
 :asm-debug-web-module-version: 2.0.0.RELEASE
 :asm-logging-module-version: 1.1.0.RELEASE
 :asm-ehcache-module-version: 1.0.1.RELEASE
 :asm-spring-mobile-module-version: 2.0.0.RELEASE
 :asm-application-info-module-version: 1.0.1.RELEASE
-:asm-bootstrap-ui-module-version: 2.0.0-SNAPSHOT
-:asm-admin-web-module-version: 3.0.0-SNAPSHOT
+:asm-bootstrap-ui-module-version: 2.0.1.RELEASE
+:asm-admin-web-module-version: 3.0.1.RELEASE
 :asm-file-manager-module-version: 1.2.0.RELEASE
 :asm-spring-batch-module-version: 1.0.1.RELEASE
 :asm-properties-module-version: 1.1.1.RELEASE
-:asm-entity-module-version: 3.0.0-SNAPSHOT
-:asm-spring-security-acl-module-version: 3.0.0-SNAPSHOT
-:asm-user-module-version: 3.0.0-SNAPSHOT
+:asm-entity-module-version: 3.0.1.RELEASE
+:asm-spring-security-acl-module-version: 3.0.1.RELEASE
+:asm-user-module-version: 3.0.0.RELEASE
 :asm-ldap-module-version: 1.0.0.RELEASE
 :asm-oauth2-module-version: 2.0.0.RELEASE
-:asm-web-cms-version: 0.0.4-SNAPSHOT
+:asm-web-cms-version: 0.0.4.RELEASE
 :ais-image-server-version: 4.0.0.RELEASE
 
 include::../ax-docs-shared/copyright.adoc[]
@@ -83,7 +83,7 @@ If a version is omitted, the version from the BOM will be used.
 
 == What's new in this version
 
-=== 2.1.0-SNAPSHOT
+=== 2.1.0.RELEASE
 Most of the standard modules have been baselined against Across 3.0.0 in this update.
 See the link:migration-2.0.x-to-2.1.x.html[migration guide] for upgrading from Across Platform 2.0.x.
 
