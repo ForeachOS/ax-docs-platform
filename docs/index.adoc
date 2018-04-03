@@ -4,10 +4,10 @@
 :toclevels: 2
 :sectnums:
 :chapter-number: 0
-:across-platform-version: 2.1.0.RELEASE
+:across-platform-version: 2.1.1-SNAPSHOT
 :spring-platform-version: Brussels-SR7
 :spring-platform-url: http://docs.spring.io/platform/docs/Brussels-SR7/reference/htmlsingle/#appendix-dependency-versions
-:across-version: 3.0.0.RELEASE
+:across-version: 3.1.0-SNAPSHOT
 :across-autoconfigure-version: 1.0.0.RELEASE
 :foreach-common-version: 1.1
 :commons-collections-version: 4.1
@@ -82,6 +82,23 @@ If a version is omitted, the version from the BOM will be used.
 ----
 
 == What's new in this version
+
+=== 2.1.1-SNAPSHOT
+
+.Across dependency upgrades
+
+[cols="3,1,1",options=header]
+|===
+
+|Dependency
+|Previous version
+|New version
+
+|Across
+|3.0.0.RELEASE
+|3.1.0-SNAPSHOT
+
+|===
 
 === 2.1.0.RELEASE
 Most of the standard modules have been baselined against Across 3.0.0 in this update.
