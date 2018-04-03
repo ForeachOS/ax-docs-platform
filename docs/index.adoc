@@ -102,31 +102,43 @@ See the link:migration-2.0.x-to-2.1.x.html[migration guide] for upgrading from A
 
 |AcrossHibernateJpaModule
 |2.0.1.RELEASE
-|3.0.0-SNAPSHOT
+|3.0.0.RELEASE
 
 |AdminWebModule
 |2.1.1.RELEASE
-|3.0.0-SNAPSHOT
+|3.0.1.RELEASE
 
 |BootstrapUiModule
 |1.2.0.RELEASE
-|2.0.0-SNAPSHOT
+|2.0.1.RELEASE
 
 |EntityModule
 |2.2.0.RELEASE
-|3.0.0-SNAPSHOT
+|3.0.1.RELEASE
 
 |SpringSecurityModule
 |2.0.1.RELEASE
-|3.0.0-SNAPSHOT
+|3.0.1.RELEASE
 
 |UserModule
 |2.0.0.RELEASE
-|3.0.0-SNAPSHOT
+|3.0.0.RELEASE
 
 |WebCmsModule
 |0.0.3.RELEASE
-|0.0.4-SNAPSHOT
+|0.0.4.RELEASE
+
+|Across auto-configure
+|
+|1.0.0.RELEASE
+
+|SpringSecurityAclModule
+|2.0.1.RELEASE
+|3.0.1.RELEASE
+
+|LdapModule
+|1.0.0.RELEASE
+|1.0.1.RELEASE
 
 |===
 
