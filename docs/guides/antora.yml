@@ -1,0 +1,5 @@
+name: guides
+title: Application Guides
+version: dev
+nav:
+- modules/ROOT/nav.adoc

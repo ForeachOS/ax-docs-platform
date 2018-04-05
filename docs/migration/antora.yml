@@ -1,0 +1,5 @@
+name: migration
+title: Migration guides
+version: dev
+nav:
+- modules/ROOT/nav.adoc
