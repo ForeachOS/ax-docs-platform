@@ -1,0 +1,8 @@
+:page-partial:
+[[web-validation]]
+== Validation
+Across Web supports all link:{spring-docs}#validation[Spring MVC validation] options on data binding and controllers.
+
+If a JSR-303 implementation (eg. Hibernate validator) is on the classpath, annotation/constraint based validation is also automatically enabled.
+See the chapter on link:{doc-developing-applications}#validation[validation in "Developing applications"] for more information.
+

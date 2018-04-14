@@ -1,2 +1,14 @@
 * Adding security
 * Access control
+* Web features
+** Uploading files (multipart)
+* Caching
+* Validation
+* JPA/Hibernate/multiple datasources
+* Monitoring your application
+* User management
+** Syncing users with oauth2 ?
+
+//* ConversionService (?)
+//* Creating a layout template
+//* Registering web resources
