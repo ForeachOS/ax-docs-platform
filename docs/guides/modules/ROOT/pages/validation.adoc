@@ -6,3 +6,20 @@ Across Web supports all link:{spring-docs}#validation[Spring MVC validation] opt
 If a JSR-303 implementation (eg. Hibernate validator) is on the classpath, annotation/constraint based validation is also automatically enabled.
 See the chapter on link:{doc-developing-applications}#validation[validation in "Developing applications"] for more information.
 
+
+== Validation
+If a JSR-303 implementation (eg. Hibernate validator) is on the classpath, Bean Validation 1.1 will automatically be enabled in all modules.
+A single `Validator` bean will be created with support for `javax.validation` constraints.
+
+It can be used for manual validation of components, or for the use of `@Validated` on target classes.
+The latter allows property/field validation (for example link:{spring-boot-docs}#boot-features-external-config-validation[with `@ConfigurationProperties`]) or link:{spring-boot-docs}#boot-features-validation[method validation].
+
+.Hibernate validator JSR-303 implementation
+[source,xml]
+----
+<dependency>
+    <groupId>org.hibernate</groupId>
+    <artifactId>hibernate-validator</artifactId>
+</dependency>
+----
+
