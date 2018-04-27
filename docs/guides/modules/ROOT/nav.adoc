@@ -1,4 +1,5 @@
 * Adding security
+** xref:security/oauth2-sso.adoc[OAuth2 with Single-Sign On]
 * Access control
 * Web features
 ** Uploading files (multipart)
