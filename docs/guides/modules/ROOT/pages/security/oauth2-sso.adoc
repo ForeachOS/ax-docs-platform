@@ -1,4 +1,5 @@
-include::../variables.adoc[]
+include::{partialsDir}/variables.adoc[]
+
 = Integrating with OAuth2 using SSO.
 :experimental:
 
