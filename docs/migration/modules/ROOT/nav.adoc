@@ -1,1 +1,1 @@
-* 2.0 to 2.1
+* xref:platform-2-0-to-2-1.adoc[2.0 to 2.1]
