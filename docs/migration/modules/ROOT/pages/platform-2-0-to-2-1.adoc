@@ -16,18 +16,17 @@
 :!numbered:
 
 [abstract]
-This guide describes the most common steps necessary when upgrading from Platform BOM 2.0.x to 2.1.x.
-
-== Migrating to 2.1.0
+--
 Platform 2.1.0 is bound to Across 3.0.0, which is the first release with the `across-autoconfigure` artifact and builds more on top of Spring Boot.
 Upgrading to Platform 2.1.0 usually requires you to make some configuration and code changes to your applications.
 
 NOTE: This guide is not a full overview of all new features and changes in Across or any of its modules.
 It mainly focuses on upgrade related changes: usually breaking changes or new features that impact application/module configuration.
+--
 
-=== Across Core
-==== Auto-configuration support
-===== Add autoconfigure artifact
+== Across Core
+=== Auto-configuration support
+==== Add autoconfigure artifact
 When upgrading your applications (built with `@AcrossApplication`), the first step is to add the new `across-autoconfigure` artifact to your project.
 
 [source,xml,indent=0]
@@ -56,7 +55,7 @@ Some useful additions now available without additional configuration:
 
 NOTE: When adding the across autoconfigurate artifact to your application, Spring Data Web support is enabled, which causes all repositories to be exposed as well.
 
-===== Cleanup @AcrossApplication
+==== Cleanup @AcrossApplication
 Review the release notes and Spring Boot compatibility documentation and remove imports and annotations from your `@AcrossApplication` class.
 
 .Example @AcrossApplication configuration cleanup
@@ -92,13 +91,13 @@ If you have any of the following annotations in any of your modules or on your a
 * `@EnableWebSocket`
 * `@EnableWebSocketMessageBroker`
 
-===== META-INF/across.configuration
+==== META-INF/across.configuration
 Across 3.0.0 externalizes some of its configuration in a `META-INF/across.configuration` properties file.
 This is especially used for auto-configuration and configuration validation settings.
 
 Please see the {docs-across-spring-compatibility-ax-conf}[Across reference documentation section] for a full description of the configuration file and what you can do with it.
 
-==== Configuration validation
+=== Configuration validation
 Across now attempts to validate your configuration when starting.
 It will check for the presence of configuration classes in places where they should not be.
 This could be using a configuration class on either the application level or in a module, where a different module already handles that particular bit of configuration.
@@ -121,7 +120,7 @@ We strongly advise you to leave it on during development mode as it can help you
 It's possible to configure your own illegal configurations in the `META-INF/across.configuration` file.
 This is especially useful for shared modules that activate application-level features.
 
-==== Multiple datasources
+=== Multiple datasources
 If your application has multiple datasources, it is now required that one of them is marked as `@Primary`.
 It is best to have a specific datasoure named `acrossDataSource` as well to mark the datasource that should be used for the core Across schema and the standard modules.
 
@@ -157,7 +156,7 @@ public DataSource barDataSource() {
 }
 ----
 
-==== New event handling
+=== New event handling
 The internal event handling system has been entirely rewritten and now builds on top of the default Spring Framework event handling infrastructure.
 Instead of the Across-specific `@Event`, the Spring Framework `@EventListener` should now be used.
 
@@ -199,14 +198,14 @@ Please read the {docs-across-core-events}[Across reference documentation section
 The MBassador dependency - responsible for the previous event bus implementation - has been removed entirely.
 Any listener methods that were directly using MBassador annotations will have to be rewritten as an `@EventListener`.
 
-===== Across bootstrap events
+==== Across bootstrap events
 One of the breaking changes with the new event handling infrastructure is that it is no longer possible to use regular `@Event` (or `@EventListener`) to intercept Across bootstrap related events from the parent application class.
 If you want to handle bootstrap related events from a parent `ApplicationContext`, you should do so in a component implementing the `AcrossLifecycleListener` interface.
 
 NOTE: Using `AcrossLifecycleListener` to modify the Across context configuration from a parent `ApplicationContext` (eg the `@AcrossApplication` class) is not required.
 Instead you can use the `AcrossBootstrapConfigurer` interface on one ore more of your components, which was introduced especially for this purpose.
 
-==== @ModuleConfiguration
+=== @ModuleConfiguration
 The internal processing of `@ModuleConfiguration` classes - module extensions provided by other modules - has been changed.
 This was necessary to fix issues with incorrect handling of conditionals on these `@ModuleConfiguration` classes.
 
@@ -216,7 +215,7 @@ This introduces some possibly breaking changes:
 * `@ModuleConfiguration` classes are only scanned for in the `extensions` package, any `@ModuleConfiguration` class in a `config` package will now be loaded in the original module, instead of correctly treated as a module configuration extension
 * import order has changed: module extensions will now always be imported before any other annotated classes (and before any injected Spring Boot auto-configuration classes)
 
-==== New conditionals
+=== New conditionals
 Across 3.0.0 introduces some new conditionals:
 
 `@ConditionalOnAcrossModule`::
@@ -227,7 +226,7 @@ Across 3.0.0 introduces some new conditionals:
 `@ConditionalOnAutoConfiguration`::
   Use this conditional if you want to check if an auto-configuration class has been loaded anywhere in the Across application.
 
-==== AcrossModule component scan
+=== AcrossModule component scan
 The default `AcrossModule` still only scans the `config` package by default.
 However, a very common case is the behaviour of the dynamic modules: all child packages are scanned for components, with the exception of `extensions` and `installers`.
 The former contains components for module extensions, the latter installers and related components.
@@ -253,7 +252,7 @@ MyModule extends AcrossModule {
 ----
 
 [[deprecations]]
-==== Deprecations
+=== Deprecations
 The following is a list of classes that have been deprecated in Across 3.0.0:
 
 `StringToDateConverter`::
@@ -274,16 +273,16 @@ The following is a list of classes that have been deprecated in Across 3.0.0:
 `AcrossEventPublisher`::
   Use the Spring Framework `ApplicationEventPublisher` instead.
 
-=== Across Web
+== Across Web
 This chapter lists some important - possibly breaking - changes in Across Web support (provided by AcrossWebModule).
 
-==== Interceptor configuration
+=== Interceptor configuration
 `PrefixingHandlerMappingConfigurer` can no longer be applied to the default AcrossWebModule, use a regular `WebMvcConfigurer` to add interceptors instead.
 
 * different prefixed handler mappings (eg. AdminWebModule) still require the use of `PrefixingHandlerMappingConfigurer` for adding interceptors
 * if you want to add an interceptor to all controllers, you should implement both `WebMvcConfigurer` and `PrefixingHandlerMappingConfigurer`
 
-==== Menu building
+=== Menu building
 The menu infrastructure support has been optimized to fix some technical and functional issues with the moving of path based menu items.
 Some code has been deprecated and still works as before, alongside the addition of new improved features.
 
@@ -299,7 +298,7 @@ Most important (breaking) changes:
 
 The {docs-across-web-menus}[reference documentation regarding menu building] has been rewritten completely, we strongly advise you to read the documentation and update your code accordingly.
 
-==== Multipart uploads
+=== Multipart uploads
 The `MultipartProperties` from Spring Boot are now being used for multipart configuration.
 This means different property names should be used for custom configuration.
 
@@ -318,11 +317,11 @@ spring:
 ----
 
 
-=== Across Standard Modules
+== Across Standard Modules
 The following section applies to the breaking changes in the standard modules.
 These instructions are only relevant if you use these modules in your applications.
 
-==== AcrossHibernateJpaModule
+=== AcrossHibernateJpaModule
 The module has undergone significant changes to increase compatibility with the Spring Data JPA starter.
 When plugging a single AcrossHibernateJpaModule in an application it will now transparently take over the starter JPA support on the application module.
 
@@ -341,7 +340,7 @@ Most important changes include:
 
 See the {docs-asm-ahm-url-3_0_0}[AcrossHibernateJpaModule documentation] for a full list of release notes.
 
-==== SpringSecurityModule
+=== SpringSecurityModule
 SpringSecurityModule now re-uses Spring Boot security configuration and inspects `SecurityProperties` for default settings.
 As a result, additional security might be activated in your application, where previously it was not (see below).
 
@@ -384,7 +383,7 @@ The H2 Web Console (usually `/h2-console`) will now be secured by default, unles
 
 See the {docs-asm-ssm-url-3_0_0}[SpringSecurityModule documentation] for a full list of release notes.
 
-==== BootstrapUiModule
+=== BootstrapUiModule
 BootstrapUiModule has mainly been updated with new features.
 The following are the most important updates from a migration point of view:
 
@@ -403,7 +402,7 @@ The property `renderHelpBlockBeforeControl` has been removed as the `description
 
 See the {docs-asm-bum-url-2_0_0}[BootstrapUiModule documentation] for a full list of release notes.
 
-==== AdminWebModule
+=== AdminWebModule
 `EntityAdminMenu` and `EntityAdminMenuEvent` have been deprecated.
 These classes were never supposed to be in the AdminWebModule package space, as they belong to EntityModule functionality.
 To migrate, simply rename the import package from `com.foreach.across.modules.adminweb.menu` to `com.foreach.across.modules.entity.views.menu`.
@@ -413,7 +412,7 @@ Migration is strongly advised, though no code changes are required in this relea
 
 See the {docs-asm-awm-url-3_0_0}[AdminWebModule documentation] for a full list of release notes.
 
-==== EntityModule
+=== EntityModule
 EntityModule has mainly been updated with new features.
 See the {docs-asm-em-url-3_0_0}[EntityModule documentation] for a full list of release notes.
 
@@ -434,7 +433,7 @@ Controls are prefixed with `entity.` only if there is an additional builder cont
 This only done by default in the `PropertyRenderingViewProcessor`, used by the default entity views.
 This change can cause side effects in existing custom forms, developers are encouraged to review those.
 
-===== Linking to entity views
+==== Linking to entity views
 The new version introduces a new approach for linking to entity views, which might result in breaking changes in some application.
 The `EntityLinkBuilder` implementation has been deprecated.
 A new `EntityViewLinks` component has been added as an entry point for building links to entity views.
@@ -562,14 +561,14 @@ links.linkTo( myEntity ).association( AssociatedEntity.class ).toUriString();
 links.linkTo( myEntity ).association( associatedItem ).toUriString();
 ----
 
-=== Contributed Modules
+== Contributed Modules
 
 Adding additional spring and autoconfiguration compatibility potentially incurs issues with contributed/older modules.
 In the next sections, known issues will be listed.
 
-==== ImageServer
+=== ImageServer
 
-===== Handler mapping
+==== Handler mapping
 
 ImageServer specific paths are registered but can no longer be resolved.
 This is because an additional path resolver (`/**`) has been added through spring compatibility, which accepts _any_ path and has a higher precedence than the ImageServer handler mappings.
@@ -584,7 +583,7 @@ spring.mvc.static-resources-path: /**
 spring.mvc.static-resources-path: /foobar
 ```
 
-===== Tables are no longer found
+==== Missing database columns
 
-The naming strategy used by AcrossHibernateModule has changed from the Hibernate default to the Spring Boot default.
+The naming strategy used by `AcrossHibernateModule` has changed from the Hibernate default to the Spring Boot default.
 Please see the <<_acrosshibernatejpamodule,changes to AcrossHibernateModule>> on how to change the physical naming strategy.
