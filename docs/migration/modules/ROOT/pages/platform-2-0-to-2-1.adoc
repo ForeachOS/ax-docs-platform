@@ -563,7 +563,7 @@ links.linkTo( myEntity ).association( associatedItem ).toUriString();
 
 == Contributed Modules
 
-Adding additional spring and autoconfiguration compatibility potentially incurs issues with contributed/older modules.
+Adding additional spring and auto-configuration compatibility potentially incurs issues with contributed/older modules.
 In the next sections, known issues will be listed.
 
 === ImageServer
