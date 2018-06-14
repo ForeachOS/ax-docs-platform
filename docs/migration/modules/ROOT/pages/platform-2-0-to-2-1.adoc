@@ -568,22 +568,24 @@ In the next sections, known issues will be listed.
 
 === ImageServer
 
+The following section lists migration issues with the current version of ImageServer.
+
 ==== Handler mapping
 
 ImageServer specific paths are registered but can no longer be resolved.
 This is because an additional path resolver (`/**`) has been added through spring compatibility, which accepts _any_ path and has a higher precedence than the ImageServer handler mappings.
 This will be fixed in a later release.
 
-To work around the issue, the static resources path can be modified as follows:
-```
-# This is the default value that is used, even when the property is not present for the active profile.
-spring.mvc.static-resources-path: /**
+To work around the issue, the wildcard static resources path must be removed by setting the property:
 
-# Upon changing this path, the handler mappings will correctly be resolved.
-spring.mvc.static-resources-path: /foobar
-```
+[source,properties]
+----
+# Manually specify a static resource path (remove the default /**)
+spring.mvc.static-resources-path=
+----
 
 ==== Missing database columns
 
-The naming strategy used by `AcrossHibernateModule` has changed from the Hibernate default to the Spring Boot default.
-Please see the <<_acrosshibernatejpamodule,changes to AcrossHibernateModule>> on how to change the physical naming strategy.
+ImageServer requires that the Hibernate default naming strategy is used.
+You must manually force your application to use the compatible physical naming strategy.
+Please see the <<_acrosshibernatejpamodule,changes to AcrossHibernateModule>> for all details.
