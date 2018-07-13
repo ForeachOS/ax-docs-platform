@@ -1,0 +1,32 @@
+= Migration guide: platform 2.1.x to 3.0.x
+
+[abstract]
+--
+Platform 3.0.0 binds to Across 4.0.0, which is built on top of Spring Boot 2.0.x and Spring Framework 5.0.x.
+This is a major upgrade with *a lot of breaking changes*, mostly due to changes inside Spring dependencies.
+
+NOTE: This guide is not a full overview of all new features and changes in Across or any of its modules.
+It mainly focuses on upgrade related changes: usually breaking changes or new features that impact application/module configuration.
+--
+
+== General breaking changes
+
+=== Property renaming
+
+.Property prefix modifications
+|===
+|Module |Old prefix |New prefix
+
+|Across Web
+|`acrossWebModule`
+|`across.web`
+
+|===
+
+=== Spring libraries
+
+* Several Spring Data `Repository` interfaces have been modified.
+Certain often used methods have been removed altogether and replaced with new alternatives (with a different signature).
+For example `findOne(id)` has been replaced by `findById(id)` and now returns an `Optional`.
+
+== Auto-configuration support
