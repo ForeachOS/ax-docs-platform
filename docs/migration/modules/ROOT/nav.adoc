@@ -1,2 +1,2 @@
 * xref:platform-2-0-to-2-1.adoc[2.0.x to 2.1.x]
-* xref:platform-2.1-to-3.0.adoc[2.1.x to 3.0.x]
+* xref:platform-2-1-to-3-0.adoc[2.1.x to 3.0.x]
