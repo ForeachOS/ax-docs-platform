@@ -11,6 +11,10 @@ It mainly focuses on upgrade related changes: usually breaking changes or new fe
 
 == General breaking changes
 
+https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-2.0-Release-Notes
+https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-Security-2.0
+https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-2.0-Migration-Guide
+
 === Property renaming
 
 .Property prefix modifications
