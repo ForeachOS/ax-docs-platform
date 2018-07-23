@@ -1,1 +1,17 @@
-index of the guides
+= Application Guides
+
+[NOTE]
+====
+This documentation section is under active development.
+The navigation section on the left mostly contains placeholders for future guides.
+====
+
+== Overview
+The following application guides are currently available:
+
+* xref:security/oauth2-sso.adoc[Integrating with OAuth2 using SSO]
+
+== Tutorials and how-tos
+
+Some other (video) tutorials and blogs are https://across.foreach.be/documentation/tutorials[linked on a separate page].
+
