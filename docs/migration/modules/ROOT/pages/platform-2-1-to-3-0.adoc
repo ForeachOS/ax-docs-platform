@@ -12,8 +12,15 @@ It mainly focuses on upgrade related changes: usually breaking changes or new fe
 == General breaking changes
 
 https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-2.0-Release-Notes
+
 https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-Security-2.0
+
 https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-2.0-Migration-Guide
+
+=== Module developers
+
+* Spring Boot property relaxed binding has changed, you must now use the canonical format in code when referencing a property
+** see https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-2.0-Migration-Guide#relaxed-binding
 
 === Property renaming
 
@@ -33,4 +40,15 @@ https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-2.0-Migration-Gu
 Certain often used methods have been removed altogether and replaced with new alternatives (with a different signature).
 For example `findOne(id)` has been replaced by `findById(id)` and now returns an `Optional`.
 
+* Hibernate upgrades to 5.2, see migration guide: https://github.com/hibernate/hibernate-orm/blob/5.2/migration-guide.adoc
+
 == Auto-configuration support
+
+* `across.configuration` has been dropped in favour of `across-configuration.yml` which allows more advanced configuration
+
+== Modules
+
+=== AcrossHibernateModule
+
+* some properties (`default-timeout`) have been changed of type, a duration is now sometimes required (eg. 5s instead of 5)
+
