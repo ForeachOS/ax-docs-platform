@@ -17,6 +17,8 @@ https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-Security-2.0
 
 https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-2.0-Migration-Guide
 
+https://spring.io/blog/2017/11/01/spring-security-5-0-0-rc1-released#password-encoding
+
 === Module developers
 
 * Spring Boot property relaxed binding has changed, you must now use the canonical format in code when referencing a property
@@ -36,9 +38,14 @@ https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-2.0-Migration-Gu
 
 === Spring libraries
 
+* Spring ORM JPA uses Oracle12c dialect by default instead of 10
+** users might need to specify `Oracle10gDialect` as Hibernate dialect specifically
+
 * Several Spring Data `Repository` interfaces have been modified.
 Certain often used methods have been removed altogether and replaced with new alternatives (with a different signature).
 For example `findOne(id)` has been replaced by `findById(id)` and now returns an `Optional`.
+
+** when using Cache annotations be aware that `#result` on an `Optional` returning method refers to the actual content of the `Optional` if it is not empty
 
 * Hibernate upgrades to 5.2, see migration guide: https://github.com/hibernate/hibernate-orm/blob/5.2/migration-guide.adoc
 
@@ -59,5 +66,12 @@ Most security configurations that used Spring Boot 1.5 defaults (for example for
 * Spring Boot no longer applies custom security to any endpoint, meaning that you will now have to manually apply the security you want by providing `WebSecurityConfigurerAdapter`
 * if there is no `WebSecurityConfigurerAdapter` the default Spring security adapter will secure everything
 ** if you have SpringSecurityModule but do not want to have security applied, you should manually add a configuration that ignores everything
+* Password encoding features have been modified, if you want to specify in memory users with a default password, you probably have to migrate your old code and prefix the password with `{noop}` to avoid a no `PasswordEncoder` exception
 
 See https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-Security-2.0
+
+=== EntityModule
+
+Mostly Spring Data related changes.
+In previous version a `Sort` could be `null` whereas now a `Sort.unsorted()` is used in Spring Data.
+According changes in EntityModule have been done, passing `null` as a `Sort` should be avoided.
