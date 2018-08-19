@@ -9,6 +9,10 @@ NOTE: This guide is not a full overview of all new features and changes in Acros
 It mainly focuses on upgrade related changes: usually breaking changes or new features that impact application/module configuration.
 --
 
+== State of the migration guide
+
+Current Platform development version is `3.0.0-SNAPSHOT`, slated to become `3.0.0.M1`.
+
 == General breaking changes
 
 https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-2.0-Release-Notes
@@ -26,6 +30,11 @@ https://spring.io/blog/2017/11/01/spring-security-5-0-0-rc1-released#password-en
 
 === Property renaming
 
+A lot of Spring Boot properties have been renamed for consistency and to differ between Servlet and Webflux setups.
+See the Boot 2.0 migration guide for more information on the new properties.
+
+The following Across module properties have been modified:
+
 .Property prefix modifications
 |===
 |Module |Old prefix |New prefix
@@ -37,6 +46,8 @@ https://spring.io/blog/2017/11/01/spring-security-5-0-0-rc1-released#password-en
 |===
 
 === Spring libraries
+
+* The behavior or `spring.config.location` has been changed, to get the old behavior `spring.config.additional-location` should be used instead: https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-2.0-Migration-Guide#configuration-location
 
 * Spring ORM JPA uses Oracle12c dialect by default instead of 10
 ** users might need to specify `Oracle10gDialect` as Hibernate dialect specifically
@@ -54,6 +65,8 @@ For example `findOne(id)` has been replaced by `findById(id)` and now returns an
 * `across.configuration` has been dropped in favour of `across-configuration.yml` which allows more advanced configuration
 
 == Modules
+
+In general most modules have breaking changes regarding Spring Data repositories, where single instance queries will now always return `Optional`.
 
 === AcrossHibernateModule
 
@@ -75,3 +88,10 @@ See https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-Security-2.0
 Mostly Spring Data related changes.
 In previous version a `Sort` could be `null` whereas now a `Sort.unsorted()` is used in Spring Data.
 According changes in EntityModule have been done, passing `null` as a `Sort` should be avoided.
+
+=== SpringMobileModule
+
+Device specific Thymeleaf view resolving only works with the `.html` extension out of the box.
+The previous `.thtml` extension is no longer supported.
+
+WARNING: Spring Mobile is no longer part of Spring Platform Cairo, this indicates the project is probably not as much up-to-date as other Spring projects and its future might be uncertain.
