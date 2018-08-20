@@ -54,11 +54,16 @@ The following Across module properties have been modified:
 
 * Several Spring Data `Repository` interfaces have been modified.
 Certain often used methods have been removed altogether and replaced with new alternatives (with a different signature).
-For example `findOne(id)` has been replaced by `findById(id)` and now returns an `Optional`.
+** `findOne(id)` has been replaced by `findById(id)` and now returns an `Optional`.
+** `delete(List)` has been replaced by `deleteAll(Iterable)`. The same goes for `save(List)`.
+
+* Spring data commons has renamed `QueryDslPredicateExecutor` to `QuerydslPredicateExecutor` (in the same package).
 
 ** when using Cache annotations be aware that `#result` on an `Optional` returning method refers to the actual content of the `Optional` if it is not empty
 
 * Hibernate upgrades to 5.2, see migration guide: https://github.com/hibernate/hibernate-orm/blob/5.2/migration-guide.adoc
+
+* `Date` classes in json responses are not serialized as timestamps anymore, if you want the older behaviour, set `spring.jackson.serialization.write_dates_as_timestamps: true`
 
 == Auto-configuration support
 
