@@ -4,11 +4,11 @@
 :toclevels: 2
 :sectnums:
 :chapter-number: 0
-:across-platform-version: 2.1.1-SNAPSHOT
+:across-platform-version: 2.1.2-SNAPSHOT
 :spring-platform-version: Brussels-SR7
 :spring-platform-url: http://docs.spring.io/platform/docs/Brussels-SR7/reference/htmlsingle/#appendix-dependency-versions
-:across-version: 3.1.0-SNAPSHOT
-:across-autoconfigure-version: 1.0.0.RELEASE
+:across-version: 3.1.1-SNAPSHOT
+:across-autoconfigure-version: 1.0.1.RELEASE
 :foreach-common-version: 1.1
 :commons-collections-version: 4.1
 :commons-lang-version: 3.7
@@ -25,17 +25,18 @@
 :asm-ehcache-module-version: 1.0.1.RELEASE
 :asm-spring-mobile-module-version: 2.0.0.RELEASE
 :asm-application-info-module-version: 1.0.1.RELEASE
-:asm-bootstrap-ui-module-version: 2.1.0-SNAPSHOT
+:asm-bootstrap-ui-module-version: 2.1.1-SNAPSHOT
 :asm-admin-web-module-version: 3.0.1.RELEASE
 :asm-file-manager-module-version: 1.2.0.RELEASE
 :asm-spring-batch-module-version: 1.0.1.RELEASE
 :asm-properties-module-version: 1.1.1.RELEASE
-:asm-entity-module-version: 3.0.1.RELEASE
+:asm-entity-module-version: 3.2.0-SNAPSHOT
 :asm-spring-security-acl-module-version: 3.0.1.RELEASE
 :asm-user-module-version: 3.0.0.RELEASE
 :asm-ldap-module-version: 1.0.0.RELEASE
 :asm-oauth2-module-version: 2.0.0.RELEASE
 :asm-web-cms-version: 0.0.4.RELEASE
+:asm-dynamic-forms-module: 0.0.2-SNAPSHOT
 :ais-image-server-version: 4.0.0.RELEASE
 
 include::../ax-docs-shared/copyright.adoc[]
@@ -83,7 +84,38 @@ If a version is omitted, the version from the BOM will be used.
 
 == What's new in this version
 
-=== 2.1.1-SNAPSHOT
+=== 2.1.2-SNAPSHOT
+
+.Across dependency upgrades
+
+[cols="3,1,1",options=header]
+|===
+
+|Dependency
+|Previous version
+|New version
+
+|Across
+|3.1.0.RELEASE
+|3.1.1-SNAPSHOT
+
+|BootstrapUiModule
+|2.1.0.RELEASE
+|2.1.1-SNAPSHOT
+
+|EntityModule
+|3.1.0.RELEASE
+|3.2.0-SNAPSHOT
+
+|DynamicFormsModule
+|0.0.1.RELEASE
+|0.0.2-SNAPSHOT
+
+|===
+
+=== 2.1.1.RELEASE
+
+xref:[DynamicFormsModule] has been released.
 
 .Across dependency upgrades
 
@@ -96,11 +128,35 @@ If a version is omitted, the version from the BOM will be used.
 
 |Across
 |3.0.0.RELEASE
-|3.1.0-SNAPSHOT
+|3.1.0.RELEASE
 
 |BootstrapUiModule
 |2.0.1.RELEASE
-|2.1.0-SNAPSHOT
+|2.1.0.RELEASE
+
+|DynamicFormsModule
+|
+|0.0.1.RELEASE
+
+|EntityModule
+|3.0.1.RELEASE
+|3.1.0.RELEASE
+
+|SpringSecurityModule
+|3.0.1.RELEASE
+|3.0.2.RELEASE
+
+|OAuth2Module
+|2.0.0.RELEASE
+|2.0.1.RELEASE
+
+|WebCmsModule
+|0.0.4.RELEASE
+|0.0.5.RELEASE
+
+|Across auto-configure
+|1.0.0.RELEASE
+|1.0.1.RELEASE
 
 |===
 
