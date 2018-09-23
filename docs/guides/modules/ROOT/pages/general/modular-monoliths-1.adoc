@@ -1,0 +1,76 @@
+= Building a modular monolith with Spring Boot and Across
+
+// For initial publication on foreach.be
+
+Let's get started.
+
+Go to http://start-across.foreach.be/
+Keep the default settings,
+
+
+create module one
+add component with log message
+start application
+
+add integration test for single module
+(set logback-test.xml for better logging)
+
+add second module with component
+add integration test for second module
+wire the first component, this should fail
+add first module to the test, should start, still not working: order is wrong!
+
+add module dependency, test fails with different message
+create "expect to fail" test and create a separate new test with two modules
+
+even though bootstrap order is correct, and bean gets created, still not working
+because not exposed
+
+create a separate "ExposedComponentOne", expose it and wire that one instead
+
+tests work now
+
+== ordering
+
+ordering was important for the component creation and wiring
+defining explicit dependencies ensures reliable bootstrap ordering,
+but ordering is kept throughout the application as much as possible
+
+let's create an additional module which simply retrieves all suppliers, and returns the class names
+
+write test which checks the class names returned, only exposed component one is in there
+add exposed component to module two, update dependencies on 3 and re-run; class names are in there
+
+class names order is deterministic
+
+no matter how many times we re-run the application, the beans would be returned in the same order
+
+== refreshing
+
+module 3 explicitly defines dependencies to 1 and 2, but what if we simply want to retrieve all instances exposed by any module:
+remove dependencies, and switch to refreshable collection
+
+update test to create variation with none, 1 and 2 other modules
+
+== event handling
+
+another place where the ordering is important is event handling
+
+let's say all modules subscribe to the AcrossContextBoostrappedEvent
+you can see that they are received in order
+
+let's say that module 3 publishes another event based on the incoming event
+you can see that the event is handled by others first, even event listeners from the same module come later
+
+package dependencies: place of SomeEvent
+additional layer, private/package visibility
+
+== implicit and explicit ordering
+
+you can use @Order and @OrderInModule
+
+== conclusion
+
+3 core concepts of how Across works differently from a regular Spring Boot application
+
+
