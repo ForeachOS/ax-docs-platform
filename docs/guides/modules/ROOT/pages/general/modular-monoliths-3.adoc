@@ -1,0 +1,5 @@
+multi-mode module
+
+as an embedded service (with or without api)
+as a separate api
+as a client
