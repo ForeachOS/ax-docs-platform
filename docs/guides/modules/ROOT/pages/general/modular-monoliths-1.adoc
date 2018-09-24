@@ -4,31 +4,288 @@
 
 Let's get started.
 
+focus on
+
+- bean creation
+- dependencies between modules and beans
+- default ordering of components and modules
+- how event handling is different
+
 Go to http://start-across.foreach.be/
 Keep the default settings,
 
 
 create module one
+
+[source,java]
+----
+package com.example.demo.modules.one;
+
+public class ModuleOne extends AcrossModule
+{
+	public static final String NAME = "ModuleOne";
+
+	@Override
+	public String getName() {
+		return NAME;
+	}
+
+	@Override
+	protected void registerDefaultApplicationContextConfigurers( Set<ApplicationContextConfigurer> contextConfigurers ) {
+		contextConfigurers.add( ComponentScanConfigurer.forAcrossModule( ModuleOne.class ) );
+	}
+}
+----
+
 add component with log message
+
+[source,java]
+----
+package com.example.demo.modules.one;
+
+@Component
+@Slf4j
+public class InternalComponentOne
+{
+	public InternalComponentOne() {
+		LOG.info( "Component created: {}", getClass() );
+	}
+}
+----
+
+[source]
+----
+com.example.demo.modules/
+  one/
+    ModuleOne.java
+    InternalComponentOne.java
+----
+
 start application
 
 add integration test for single module
+
+.src/test/java/test/TestModuleBootstrapScenarios.java
+[source,java]
+----
+@Slf4j
+public class TestModuleBootstrapScenarios
+{
+	@Test
+	public void moduleOneShouldBootstrapInIsolation() {
+		try (AcrossTestContext ignore = AcrossTestBuilders.standard( false ).modules( new ModuleOne() ).build()) {
+			LOG.trace( "Bootstrap successful." );
+		}
+	}
+}
+----
+
 (set logback-test.xml for better logging)
 
+.src/test/resources/logback-test.xml
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+	<include resource="logback-across-test.xml"/>
+</configuration>
+----
+
 add second module with component
+
+[source,java]
+----
+package com.example.demo.modules.two;
+
+public class ModuleTwo extends AcrossModule
+{
+	@Override
+	public String getName() {
+		return "ModuleTwo";
+	}
+
+	@Override
+	protected void registerDefaultApplicationContextConfigurers( Set<ApplicationContextConfigurer> contextConfigurers ) {
+		contextConfigurers.add( ComponentScanConfigurer.forAcrossModule( ModuleTwo.class ) );
+	}
+}
+----
+
+[source,java]
+----
+package com.example.demo.modules.two;
+
+public class ModuleTwo extends AcrossModule
+{
+	@Override
+	public String getName() {
+		return "ModuleTwo";
+	}
+
+	@Override
+	protected void registerDefaultApplicationContextConfigurers( Set<ApplicationContextConfigurer> contextConfigurers ) {
+		contextConfigurers.add( ComponentScanConfigurer.forAcrossModule( ModuleTwo.class ) );
+	}
+}
+----
+
+[source,java]
+----
+package com.example.demo.modules.two;
+
+@Component
+@Slf4j
+public class InternalComponentTwo
+{
+	public InternalComponentTwo() {
+		LOG.info( "Component created: {}", getClass() );
+	}
+}
+----
+
 add integration test for second module
+
+[source,java]
+----
+@Test
+public void moduleTwoShouldBootstrap() {
+    try (AcrossTestContext ignore = AcrossTestBuilders.standard( false ).modules( new ModuleTwo() ).build()) {
+        LOG.trace( "Bootstrap successful." );
+    }
+}
+----
+
+INSERT CONSOLE OUTPUT
+
+
+.Add dependencies
+
 wire the first component, this should fail
-add first module to the test, should start, still not working: order is wrong!
 
-add module dependency, test fails with different message
-create "expect to fail" test and create a separate new test with two modules
+[source,java]
+----
+package com.example.demo.modules.two;
 
+@Component
+@Slf4j
+public class InternalComponentTwo
+{
+	private final InternalComponentOne internalComponentOne;
+
+	public InternalComponentTwo( InternalComponentOne internalComponentOne ) {
+		LOG.info( "Component created: {}", getClass() );
+
+		this.internalComponentOne = internalComponentOne;
+	}
+}
+----
+
+add first module to the test,
+
+[source,java]
+----
+@Test
+public void moduleTwoShouldBootstrap() {
+    try (AcrossTestContext ignore = AcrossTestBuilders.standard( false )
+                                                      .modules( new ModuleTwo(), new ModuleOne() )
+                                                      .build()) {
+        LOG.trace( "Bootstrap successful." );
+    }
+}
+----
+
+should start, still not working: order is wrong!
+
+INSERT CONSOLE
+
+add module dependency
+
+[source,java]
+----
+package com.example.demo.modules.two;
+
+@AcrossDepends(required = "ModuleOne")
+public class ModuleTwo extends AcrossModule
+{
+    ...
+}
+----
+
+test fails with different message
+
+create "expect to fail" test
+and create a separate new test with two modules
+
+
+[source,java]
+----
+@Test(expected = ModuleDependencyMissingException.class)
+public void moduleTwoRequiresModuleOne() {
+    try (AcrossTestContext ignore = AcrossTestBuilders.standard( false )
+                                                      .modules( new ModuleTwo() )
+                                                      .build()) {
+        fail( "Should not have bootstrapped." );
+    }
+}
+
+@Test
+public void moduleTwoBootstrapsIfOneIsPresent() {
+    try (AcrossTestContext ignore = AcrossTestBuilders.standard( false )
+                                                      .modules( new ModuleTwo(), new ModuleOne() )
+                                                      .build()) {
+        LOG.trace( "Bootstrap successful." );
+    }
+}
+----
+
+first test is successful, second still is not
 even though bootstrap order is correct, and bean gets created, still not working
 because not exposed
 
-create a separate "ExposedComponentOne", expose it and wire that one instead
+create a separate "ExposedComponentOne"
+
+[source,java]
+----
+package com.example.demo.modules.one;
+
+@Component
+@Exposed
+public class ExposedComponentOne implements Supplier<String>
+{
+	@Override
+	public String get() {
+		return "hello from module one";
+	}
+}
+----
+
+expose it and wire that one instead
+
+[source,java]
+----
+@Component
+@Slf4j
+public class InternalComponentTwo
+{
+	private final ExposedComponentOne exposedComponentOne;
+
+	public InternalComponentTwo( ExposedComponentOne exposedComponentOne ) {
+		LOG.info( "Component created: {} (using {})", getClass(), exposedComponentOne );
+
+		this.exposedComponentOne = exposedComponentOne;
+	}
+}
+----
 
 tests work now
+
+[source]
+----
+com.example.demo.modules/
+  one/
+    ModuleOne.java
+    InternalComponentOne.java
+----
 
 == ordering
 
@@ -38,32 +295,253 @@ but ordering is kept throughout the application as much as possible
 
 let's create an additional module which simply retrieves all suppliers, and returns the class names
 
-write test which checks the class names returned, only exposed component one is in there
-add exposed component to module two, update dependencies on 3 and re-run; class names are in there
+[source,java]
+----
+package com.example.demo.modules.three;
 
-class names order is deterministic
+@AcrossDepends(required="ModuleOne")
+public class ModuleThree extends AcrossModule
+{
+	@Override
+	public String getName() {
+		return "ModuleThree";
+	}
 
-no matter how many times we re-run the application, the beans would be returned in the same order
+	@Override
+	protected void registerDefaultApplicationContextConfigurers( Set<ApplicationContextConfigurer> contextConfigurers ) {
+		contextConfigurers.add( ComponentScanConfigurer.forAcrossModule( ModuleThree.class ) );
+	}
+}
+----
+
+[source,java]
+----
+package com.example.demo.modules.three;
+
+@Service
+@RequiredArgsConstructor
+public class SupplierService
+{
+	private Collection<Supplier<String>> suppliers;
+
+	@Autowired
+	public void setSuppliers( Collection<Supplier<String>> suppliers ) {
+		this.suppliers = suppliers;
+	}
+
+	public Collection<String> getSupplierNames() {
+		return suppliers.stream()
+		                .map( Object::getClass )
+		                .map( Class::getSimpleName )
+		                .collect( Collectors.toList() );
+	}
+}
+----
+
+expose by using `@Service` annotation
+
+[source]
+----
+com.example.demo.modules/
+  one/
+    ModuleOne.java
+    InternalComponentOne.java
+    ExposedComponentOne.java
+  two/
+    ModuleTwo.java
+    InternalComponentTwo.java
+  three/
+    ModuleThree.java
+    SupplierService.java
+----
+
+deliberately use setter with autowired
+
+write test which checks the class names returned,
+
+[source,java]
+----
+@Test
+public void supplierServiceFromModuleThreeListsDetectedSuppliersInOrder() {
+    expectSuppliers( Collections.emptyList() );
+    expectSuppliers( Collections.singletonList( "ExposedComponentOne" ), new ModuleOne() );
+    expectSuppliers( Arrays.asList( "ExposedComponentOne", "ExposedComponentTwo" ), new ModuleOne(), new ModuleTwo() );
+}
+
+private void expectSuppliers( Collection<String> names, AcrossModule... additionalModules ) {
+    try (AcrossTestContext ctx = AcrossTestBuilders.standard( false )
+                                                   .modules( new ModuleThree() )
+                                                   .modules( additionalModules )
+                                                   .build()) {
+        SupplierService supplierService = ctx.getBeanOfType( SupplierService.class );
+        assertEquals( names, supplierService.getSupplierNames() );
+    }
+}
+----
+
+only exposed component one is in there
+
+add exposed component to module two
+
+[source,java]
+----
+package com.example.demo.modules.two;
+
+@Component
+@Exposed
+public class ExposedComponentTwo implements Supplier<String>
+{
+	@Override
+	public String get() {
+		return "hello from module two";
+	}
+}
+----
+
+
+[source,java]
+----
+@AcrossDepends(required={"ModuleOne", "ModuleTwo"})
+public class ModuleThree extends AcrossModule
+{
+	...
+}
+----
+
+update dependencies on 3 and re-run; class names are in there
+
+but we want module 3 to work even if 1 or 2 are not present
+update test to create variation with none, 1 and 2 other modules
+
+test fails because missing dependency
+switch to optional dependencies
+
+see that the order is still respected, when the modules are present
 
 == refreshing
 
 module 3 explicitly defines dependencies to 1 and 2, but what if we simply want to retrieve all instances exposed by any module:
-remove dependencies, and switch to refreshable collection
+remove dependencies altogether, test fails
 
-update test to create variation with none, 1 and 2 other modules
+and switch to refreshable collection
+
+[source,java]
+----
+package com.example.demo.modules.three;
+
+@Service
+@RequiredArgsConstructor
+public class SupplierService
+{
+	private Collection<Supplier<String>> suppliers;
+
+	@RefreshableCollection
+	public void setSuppliers( Collection<Supplier<String>> suppliers ) {
+		this.suppliers = suppliers;
+	}
+
+	...
+}
+----
+
+test now succeeds without dependencies,
+the collection is refreshed once all modules have been bootstrapped
+
+
+class names order is deterministic
+no matter how many times we re-run the application, the beans would be returned in the same order
 
 == event handling
 
 another place where the ordering is important is event handling
 
-let's say all modules subscribe to the AcrossContextBoostrappedEvent
-you can see that they are received in order
+let's have the supplier service publish an event
 
-let's say that module 3 publishes another event based on the incoming event
+[source,java]
+----
+package com.example.demo.modules;
+
+import java.util.ArrayList;
+
+public class SomeEvent extends ArrayList<String>
+{
+}
+----
+
+[source,java]
+----
+@Service
+@RequiredArgsConstructor
+public class SupplierService
+{
+	private final ApplicationEventPublisher eventPublisher;
+
+	...
+
+	public Collection<String> getEventListeners() {
+		SomeEvent event = new SomeEvent();
+		eventPublisher.publishEvent( event );
+		return event;
+	}
+
+	@EventListener
+	public void receive( SomeEvent event ) {
+		event.add( getClass().getSimpleName() );
+	}
+}
+----
+
+and add some event listeners in both modules
+
+[source,java]
+----
+@Component
+@Slf4j
+public class InternalComponentOne
+{
+	...
+
+	@EventListener
+	public void receive( SomeEvent event ) {
+		event.add( getClass().getSimpleName() );
+	}
+}
+----
+
+[source,java]
+----
+@Component
+@Slf4j
+public class InternalComponentTwo
+{
+	...
+
+	@EventListener
+	public void receive( SomeEvent event ) {
+		event.add( getClass().getSimpleName() );
+	}
+}
+----
+
+[source,java]
+----
+@Test
+public void eventIsHandledInModuleOrder() {
+    try (AcrossTestContext ctx = AcrossTestBuilders.standard( false )
+                                                   .modules( new ModuleThree(), new ModuleOne(), new ModuleTwo() )
+                                                   .build()) {
+        SupplierService supplierService = ctx.getBeanOfType( SupplierService.class );
+        assertEquals( Arrays.asList( "SupplierService", "InternalComponentOne", "InternalComponentTwo" ), supplierService.getEventListeners() );
+    }
+}
+----
+
 you can see that the event is handled by others first, even event listeners from the same module come later
 
+note: we pushed someevent in a "shared" package structure currently for this simple example, but:
 package dependencies: place of SomeEvent
 additional layer, private/package visibility
+combine everything
 
 == implicit and explicit ordering
 
