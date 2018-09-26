@@ -156,7 +156,7 @@ However, when you re-run the application integration test, you *should not find*
 WARNING: If you do find the output, you probably added the component to the `application` child package.
 Move it next to the `DemoApplication` instead, we will explain the purpose of the `application` package at the end of this post.
 
-In a regular `@SpringBootApplication` we would have expected Spring Boot to scan the root package and all child packages below for components.
+In a regular `@SpringBootApplication` we would expect Spring Boot to scan the root package and all child packages below for components.
 An `@AcrossApplication` however encourages you to bundle your components in separate modules, and to only treat the application class as a descriptor for which modules should be added.
 
 In fact, if you were to manually add a `@ComponentScan` directly on the `DemoApplication` class, starting the application would fail altogether (with a specific error message).
@@ -322,7 +322,7 @@ We have created no less than 3 package structures for our tests.
 This is not any form of requirement but simply a conventional approach we prefer:
 
 * `com.example.demo` contains the actual unit tests, often tests that reside in the same package as the units of code they are testing
-* `test` contains partial integration tests, integration tests for a "parts of the application"
+* `test` contains partial integration tests, integration tests for "parts of the application"
 * `it` contains the full-stack integration tests, in this case tests that bootstrap the entire application
 
 In the Maven configuration provided by the initializr, the `it` integration tests are only run with the `integration-test` goal, whereas all others are executed when using `mvn test`.
@@ -1127,7 +1127,7 @@ A top-level component scan is not allowed, but a default dynamic module is autom
 An `AcrossModule` descriptor is not required for this module, it is entirely package based.
 Many Across applications use several shared modules and have a limited set of application-specific code using those module features.
 The dynamic application module is the default spot to put all that application specific code.
-It does not allow (or required) you to define explicit dependencies but it always bootstraps after all other modules in the application.
+It does not allow (or requires) you to define explicit dependencies but it always bootstraps after all other modules in the application.
 
 === Using the application module
 
