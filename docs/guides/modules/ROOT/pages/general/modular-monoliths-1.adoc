@@ -483,7 +483,7 @@ public class InternalComponentTwo
 This is a regular Spring bean dependency.
 This code compiles as `InternalComponentOne` is a public class, but if you run the test, it fails with exception:
 
- No qualifying bean of type 'com.example.demo.modules.one.InternalComponentOne'
+ No qualifying bean of type 'com.example.demo.modules.one.InternalComponentOne' available
 
 Which makes sense, as `InternalComponentOne` is a bean created in `ModuleOne` but our `ModuleTwo` does not have a dependency on `ModuleOne`.
 
