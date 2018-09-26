@@ -1031,7 +1031,7 @@ Here is a run-down of what happens exactly:
 . `SomeEvent` is handled by `InternalComponentTwo.receive()`
 
 Even though `SupplierService` publishes the event, it will always be handled in module order.
-This is might seem obvious with the above example, but let's shift the order around:
+This is might seem obvious with the above example, but let's shift the order around in our test:
 
  .modules( new ModuleTwo(), new ModuleThree(), new ModuleOne() )
 
