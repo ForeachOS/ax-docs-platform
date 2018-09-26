@@ -893,7 +893,7 @@ A different way to tackle this type of problem is to use a refreshable collectio
 
 A refreshable collection is a collection type dependency that will update itself once all modules in an application have been started.
 
-Remove `@AcrossDepends` from the `ModuleThree` class, and replace the `@Autowired(required=false)` by `@RefreshableCollection`:
+Remove `@AcrossDepends` from the `ModuleThree` class, and replace the `@Autowired(required=false)` from the `SupplierService` by `@RefreshableCollection`:
 
 .src/main/java/com/example/demo/modules/three/SupplierService.java
 [source,java]
