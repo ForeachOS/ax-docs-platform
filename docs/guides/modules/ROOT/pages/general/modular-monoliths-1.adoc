@@ -757,7 +757,7 @@ public class SupplierService
 Because we will change it later on, we deliberately use setter injection with `@Autowired` in this class.
 
 We want to have the `SupplierService` exposed for other modules, but instead of a regular `@Component @Exposed` we use the `@Service` annotation.
-Beans annotated with `@Service` are by default exposed.
+Beans annotated with `@Service` are exposed by default.
 
 Your project structure should now look like:
 
