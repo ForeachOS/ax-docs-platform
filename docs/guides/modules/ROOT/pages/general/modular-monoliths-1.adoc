@@ -22,6 +22,9 @@ We'll explain:
 You need to know some Spring Boot (or at least Spring framework), Java 8 and Maven to follow this tutorial.
 We will also be using Lombok to generate some boilerplate code with annotations like `@Slf4j` and `@RequiredArgsConstructor`.
 
+We take it very much step-by-step, explaining things on the way.
+If you are more interested in the complete example, see the Github repository link at the end of this post.
+
 So let's get started.
 
 == Creating our application
@@ -148,20 +151,17 @@ public class ComponentOne
 ----
 
 This class declares a simple bean component that should get instantiated when Spring scans the package for all classes annotated with `@Component`.
+However, when you re-run the application integration test, you *should not find* the test _Component created_ anywhere, meaning our component actually did not get created.
 
-NOTE: Make sure you do not add the component to the `application` child package, as that would not have the desired effect.
-We will explain the purpose of this package at the end of this post.
-
-Re-run the application integration test.
-
-If you inspect the console output you should not find the test _Component created_ anywhere, meaning our component actually did not get created.
+WARNING: If you do find the output, you probably added the component to the `application` child package.
+Move it next to the `DemoApplication` instead, we will explain the purpose of the `application` package at the end of this post.
 
 In a regular `@SpringBootApplication` we would have expected Spring Boot to scan the root package and all child packages below for components.
 An `@AcrossApplication` however encourages you to bundle your components in separate modules, and to only treat the application class as a descriptor for which modules should be added.
 
 In fact, if you were to manually add a `@ComponentScan` directly on the `DemoApplication` class, starting the application would fail altogether (with a specific error message).
 
-To move on, we should put our component in an Across module.
+In order to continue, we must put our component in an Across module.
 
 == Creating an Across module
 
@@ -191,7 +191,7 @@ public class ModuleOne extends AcrossModule
 }
 ----
 
-This class is a _module descriptor_ that defines a module named _ModuleOne_, and configures it so it scans its package for components when starting up.
+This class is a module descriptor that defines a module named `ModuleOne`, and configures it so it scans its package for components when starting up.
 
 Let's move the previously created `ComponentOne` to the same package and rename it to `InternalComponentOne`.
 
@@ -506,6 +506,7 @@ public class ModuleTwo extends AcrossModule
 ----
 
 This dependency is `required`, meaning that the application must not start if the dependency is not met.
+We refer to the module we depend on by name, as a module name is expected to be unique.
 
 If you re-run the `moduleTwoShouldBootstrap()` test, it now fails with another, clear exception:
 
@@ -559,6 +560,8 @@ Even though in the console log we can see that `InternalComponentOne` gets creat
 : 2 - ModuleTwo [resources: ModuleTwo]: class com.example.demo.modules.two.ModuleTwo
 : Exception encountered during context initialization
 ----
+
+`ModuleOne` starts up fine and creates `InternalComponentOne`, but bootstrapping `ModuleTwo` fails when it tries to resolve the `InternalComponentOne` dependency.
 
 So what is going on here?
 
@@ -648,7 +651,8 @@ As we'll see in another example below, there are other ways to expose beans.
 
 == Module ordering
 
-Unlike with a regular Spring application, eager initialization does not happen across module boundaries.
+In a regular Spring application, beans often know which other beans exist even before those other beans have been created.
+In an Across application this works differently: a bean can only know which beans another module provides once that other module has started.
 This means that even though `ExposedComponentOne` is exposed, it is required that `ModuleOne` is fully bootstrapped before `ModuleTwo` attempts to retrieve the exposed bean.
 
 It is the correct use of `@AcrossDepends` that ensures this: `ModuleTwo` explicitly depends on `ModuleOne`, which means `ModuleOne` will be guaranteed to have been started before `ModuleTwo`.
@@ -699,6 +703,7 @@ This illustrates the importance of clearly defining your module dependencies.
 The reliable implicit ordering resulting from it is one of the foremost features for building modular applications.
 
 Let's see how that ordering propagates throughout the application.
+Make sure you have uncommented the `@AcrossDepends` on `ModuleTwo` again before continuing.
 
 == Component ordering
 
@@ -1253,3 +1258,5 @@ In a next post we'll tackle:
 * embedding resources like message codes or templates
 
 In the meantime you can find more information on all things Across on https://across.foreach.be[across.foreach.be].
+
+The full source code of this tutorial is available on: https://github.com/ForeachOS/blog-modular-monoliths-across
