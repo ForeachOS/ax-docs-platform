@@ -1,0 +1,219 @@
+== Component ordering
+
+We created `ExposedComponentOne` as an implementation of `Supplier<String>`.
+Let's create another new module which has a component that retrieves all `Supplier<String>` implementations and returns their class names.
+
+Start by adding the module descriptor for `ModuleThree` which declares a dependency on `ModuleOne`:
+
+.src/main/java/com/example/demo/modules/three/ModuleThree.java
+[source,java]
+----
+package com.example.demo.modules.three;
+
+@AcrossDepends(required="ModuleOne")
+public class ModuleThree extends AcrossModule
+{
+	@Override
+	public String getName() {
+		return "ModuleThree";
+	}
+
+	@Override
+	protected void registerDefaultApplicationContextConfigurers( Set<ApplicationContextConfigurer> contextConfigurers ) {
+		contextConfigurers.add( ComponentScanConfigurer.forAcrossModule( ModuleThree.class ) );
+	}
+}
+----
+
+Add a `SupplierService` component which wires all `Supplier<String>` beans.
+
+.src/main/java/com/example/demo/modules/three/SupplierService.java
+[source,java]
+----
+package com.example.demo.modules.three;
+
+@Service
+@RequiredArgsConstructor
+public class SupplierService
+{
+	private Collection<Supplier<String>> suppliers = Collections.emptyList();
+
+	@Autowired
+	public void setSuppliers( Collection<Supplier<String>> suppliers ) {
+		this.suppliers = suppliers;
+	}
+
+	public Collection<String> getSupplierNames() {
+		return suppliers.stream()
+		                .map( Object::getClass )
+		                .map( Class::getSimpleName )
+		                .collect( Collectors.toList() );
+	}
+}
+----
+
+Because we will change it later on, we deliberately use setter injection with `@Autowired` in this class.
+
+We want to have the `SupplierService` exposed for other modules, but instead of a regular `@Component @Exposed` we use the `@Service` annotation.
+Beans annotated with `@Service` are exposed by default.
+
+Your project structure should now look like:
+
+[source]
+----
+com.example.demo/
+  modules/
+    one/
+      ModuleOne
+      InternalComponentOne
+      ExposedComponentOne
+    two/
+      ModuleTwo
+      InternalComponentTwo
+    three/
+      ModuleThree.java
+      SupplierService.java
+  DemoApplication
+----
+
+Add an integration test to check that our `SupplierService` finds the `ExposedComponentOne` implementation.
+
+.src/test/java/test/TestModuleBootstrapScenarios.java
+[source,java]
+----
+@Test
+public void supplierServiceFromModuleThreeListsDetectedSuppliers() {
+    try (AcrossTestContext ctx = AcrossTestBuilders.standard(false)
+            .modules(new ModuleThree(), new ModuleOne())
+            .build()) {
+        SupplierService supplierService = ctx.getBeanOfType(SupplierService.class);
+        assertEquals(Collections.singletonList("ExposedComponentOne"), supplierService.getSupplierNames());
+    }
+}
+----
+
+This test should succeed:
+
+* because of the module dependencies, `ModuleThree` starts after `ModuleOne` and can access the exposed `ExposedComponentOne`
+* `SupplierService` is created with the list of `Supplier<String>` beans it can find, which currently is only `ExposedComponentOne`
+* `SupplierService` is itself is exposed and can be accessed from the unit test
+
+=== Adding an exposed component
+
+Let's also add an exposed component implementing `Supplier<String>` to `ModuleTwo`:
+
+.src/main/java/com/example/demo/modules/two/ExposedComponentTwo.java
+[source,java]
+----
+package com.example.demo.modules.two;
+
+@Component
+@Exposed
+public class ExposedComponentTwo implements Supplier<String>
+{
+	@Override
+	public String get() {
+		return "hello from module two";
+	}
+}
+----
+
+If we want to ensure that our `SupplierService` can also detect this component, we now also need to make sure that `ModuleThree` starts after `ModuleTwo`.
+We could add another required dependency, but that would mean that `ModuleThree` will only start if both `ModuleOne` and `ModuleTwo` are present.
+
+But what if we simply want `ModuleThree` to list the available suppliers, without enforcing any other modules to be present?
+
+=== Optional module dependencies
+
+Suppose we change our integration test for the the `SupplierService` to the following:
+
+.src/test/java/test/TestModuleBootstrapScenarios.java
+[source,java]
+----
+@Test
+public void supplierServiceFromModuleThreeListsDetectedSuppliersInOrder() {
+    expectSuppliers( Collections.emptyList() );
+    expectSuppliers( Collections.singletonList( "ExposedComponentOne" ), new ModuleOne() );
+    expectSuppliers( Arrays.asList( "ExposedComponentOne", "ExposedComponentTwo" ), new ModuleOne(), new ModuleTwo() );
+}
+
+private void expectSuppliers( Collection<String> names, AcrossModule... additionalModules ) {
+    try (AcrossTestContext ctx = AcrossTestBuilders.standard( false )
+                                                   .modules( new ModuleThree() )
+                                                   .modules( additionalModules )
+                                                   .build()) {
+        SupplierService supplierService = ctx.getBeanOfType( SupplierService.class );
+        assertEquals( names, supplierService.getSupplierNames() );
+    }
+}
+----
+
+This test bootstraps different module combinations, and tests that the `SupplierService` always detects the correct set of suppliers.
+
+One way we can make this test succeed is to put optional dependencies on `ModuleThree`:
+
+.src/main/java/com/example/demo/modules/three/ModuleThree.java
+[source,java]
+----
+@AcrossDepends(optional={"ModuleOne", "ModuleTwo"})
+public class ModuleThree extends AcrossModule
+{
+	...
+}
+----
+
+And to make the `Collection<Supplier<String>>` dependency optional as well:
+
+.src/main/java/com/example/demo/modules/three/SupplierService.java
+[source,java]
+----
+public class SupplierService
+{
+    ...
+    @Autowired(required=false)
+    public void setSuppliers(Collection<Supplier<String>> suppliers) {
+        this.suppliers = suppliers;
+    }
+    ....
+}
+----
+
+The difference between a required and an optional module dependency is as follows:
+
+* If a required dependency is missing, the bootstrap will fail. If an optional dependency is missing, bootstrap will continue as normal.
+* Cyclic required dependencies are not allowed, and a required dependency is guaranteed to have started before the module depending on it.
+Cyclic optional dependencies are not advised but possible: a best-effort attempt will be made to start an optional dependency before the module depending on it.
+
+Even though the test is now successful, this is not an optimal approach: whenever we add another module we would have to update the `ModuleThree` dependencies to ensure it can detect the `Supplier`.
+A different way to tackle this type of problem is to use a refreshable collection.
+
+=== Using a refreshable collection
+
+A refreshable collection is a collection type dependency that will update itself once all modules in an application have been started.
+
+Remove `@AcrossDepends` from the `ModuleThree` class, and replace the `@Autowired(required=false)` from the `SupplierService` by `@RefreshableCollection`:
+
+.src/main/java/com/example/demo/modules/three/SupplierService.java
+[source,java]
+----
+public class SupplierService
+{
+    ...
+    @RefreshableCollection
+    public void setSuppliers(Collection<Supplier<String>> suppliers) {
+        this.suppliers = suppliers;
+    }
+    ....
+}
+----
+
+When you run the tests you will see they all succeed.
+Even though `ModuleThree` no longer has any module dependencies and might even bootstrap before `ModuleOne` and `ModuleTwo`, the collection of suppliers is always up-to-date once the entire application has started.
+
+Another very important fact is that result of `SupplierService.getSupplierNames()` is deterministic.
+No matter how many times you re-run the test, it will always succeed, meaning that the beans are always returned in exactly the same order.
+
+When you get a collection of beans from different modules, they will be implicitly ordered in the bootstrap order of the modules that defined them.
+
+We find the same reliable ordering principle in event handling as well, let's look at an example with events.
+

@@ -1,14 +1,23 @@
-* Adding security
+* xref:modular-monoliths/index.adoc[Building a modular monolith]
+** xref:modular-monoliths/1-creating-a-module.adoc[Applications and modules]
+** xref:modular-monoliths/2-module-dependencies.adoc[Module dependencies]
+** xref:modular-monoliths/3-using-module-components.adoc[Using module components]
+** xref:modular-monoliths/4-working-with-events.adoc[Working with events]
+** xref:modular-monoliths/5-dynamic-application-module.adoc[Dynamic application module]
+
+* xref:security/oauth2-sso.adoc[Adding security]
 ** xref:security/oauth2-sso.adoc[OAuth2 with Single-Sign On]
-* Access control
-* Web features
-** Uploading files (multipart)
-* Caching
-* Validation
-* JPA/Hibernate/multiple datasources
-* Monitoring your application
-* User management
-** Syncing users with oauth2 ?
+
+
+//* Access control
+//* Web features
+//** Uploading files (multipart)
+//* Caching
+//* Validation
+//* JPA/Hibernate/multiple datasources
+//* Monitoring your application
+//* User management
+//** Syncing users with oauth2 ?
 
 //* ConversionService (?)
 //* Creating a layout template

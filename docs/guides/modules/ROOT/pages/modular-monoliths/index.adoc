@@ -1,0 +1,47 @@
+= Building a modular monolith with Spring Boot and Across
+
+// For initial publication on foreach.be
+
+Spring Boot is excellent for building Java applications, be it large monoliths or micro-services.
+The challenge with monolithic applications is that the architecture often degrades over time, and some times they end up becoming a _big ball of mud_.
+
+Developing your monoliths in a modular fashion can help you keep your architecture under control.
+This is where Across framework comes into play, as it allows you to structure your Spring application with modules.
+
+== About this post
+
+In this post we'll be focusing on how you can define modules with Across, and how the modular approach is different from the regular Spring approach.
+
+We'll explain:
+
+* how to define an Across module and add it to your application
+* how to define dependencies between modules
+* how the bean creation differs from a regular Spring Boot application
+* how module dependencies impact the ordering of modules, beans and the handling of events
+
+You need to know some Spring Boot (or at least Spring framework), Java 8 and Maven to follow this tutorial.
+We will also be using Lombok to generate some boilerplate code with annotations like `@Slf4j` and `@RequiredArgsConstructor`.
+
+We take it very much step-by-step, explaining things on the way.
+If you are more interested in the complete example, see the Github repository link at the end of this post.
+
+So let's get started.
+
+== Wrapping it up
+
+And so we come to the end of this introduction about building modular applications with Spring Boot and Across.
+We've focused on some basic concepts where the modular approach differs from a regular Spring Boot application.
+
+Features like module dependencies, reliable ordering and event handling are the very basic building blocks you'll need.
+
+We barely scratched the surface and there's plenty more to come.
+In a next post we'll tackle:
+
+* name based resolving and transitive loading of modules
+* working with conditionals for modules and components inside modules
+* how modules can manage their own installation and run data or schema migrations
+* embedding resources like message codes or templates
+
+In the meantime you can find more information on all things Across on https://across.foreach.be[across.foreach.be].
+
+The full source code of this tutorial is available on: https://github.com/ForeachOS/blog-modular-monoliths-across
