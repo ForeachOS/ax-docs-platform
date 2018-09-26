@@ -680,7 +680,7 @@ public void moduleTwoBootstrapsIfOneIsPresent() {
 
 We no longer have defined a dependency between `ModuleOne` and `ModuleTwo`, this means _they don't care about each other_.
 In our test configuration example, we register them with `.modules(new ModuleTwo(), new ModuleOne())`: `ModuleTwo` is registered before `ModuleOne`.
-Since there is no dependency based ordering, the registration order will kept, causing the test to fail.
+Since there is no dependency based ordering, the registration order will be kept, causing the test to fail.
 
 Play around with reversing the registration order, in the console output you can clearly see its impact on the bootstrap order:
 
