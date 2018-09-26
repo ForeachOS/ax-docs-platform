@@ -1,0 +1,364 @@
+
+== Creating our application
+Let's start by creating our Spring Boot application.
+
+Go to http://start-across.foreach.be and ensure that the option `Blank Across application without any modules` is selected.
+Click on `Generate project`, download, unzip to a folder and import the project via the `pom.xml` in your favorite IDE.
+
+When unzipped, you should see the following folder structure:
+
+.Project structure
+[source]
+----
+src/
+  main/
+    java/
+      com/example/demo/
+        application/
+        DemoApplication.java
+    resources/
+      application.yml
+      application-dev.yml
+      application-prod.yml
+      build.properties
+  test/
+    java/
+      com/example/demo/application/
+      it/
+        ITDemoApplication.java
+.gitignore
+README.md
+lombok.config
+pom.xml
+----
+
+There's only 2 java classes added:
+
+* `DemoApplication` which represents the Spring Boot application
+* `ITDemoApplication` which is an integration test for bootstrapping the application
+
+Let's a have quick look at the source code of `DemoApplication`:
+
+.src/main/java/com/example/demo/DemoApplication.java
+[source,java]
+----
+@AcrossApplication(
+		modules = {
+
+		}
+)
+public class DemoApplication
+{
+	public static void main( String[] args ) {
+		SpringApplication springApplication = new SpringApplication( DemoApplication.class );
+		springApplication.setDefaultProperties( Collections.singletonMap( "spring.config.location", "${user.home}/dev-configs/demo-application.yml" ) );
+		springApplication.run( args );
+	}
+}
+----
+
+This is run as a `SpringApplication` but instead of `@SpringBootApplication` the class is annotated with `@AcrossApplication` signaling we want to bootstrap as a modular application based on Across.
+
+In an Across application we also call this file the *application descriptor*.
+
+Currently our application descriptor is empty, there are no modules added to it.
+Let's boot up our newly created application.
+
+=== Run the application
+
+You can simply execute the `DemoApplication` `main` method to run the application.
+From a terminal you can also use the following command:
+
+ $ mvn spring-boot:run
+
+When starting up the application, you should find the following in the console output:
+
+[source]
+----
+: ---
+: AcrossContext: DemoApplication (AcrossContext-1)
+: Bootstrapping 2 modules in the following order:
+: 1 - DemoApplicationModule [resources: demo]: class com.foreach.across.core.DynamicAcrossModule$DynamicApplicationModule
+: 2 - AcrossContextPostProcessorModule [resources: AcrossContextPostProcessorModule]: class com.foreach.across.core.AcrossContextConfigurationModule
+: ---
+----
+
+This is a very important piece of information for our application: it tells us which modules are being started and in which order.
+We will come back to this later on, but you should make sure you can always easily retrieve this from the logs.
+
+Even though we don't specify any modules ourselves, we can see that the application bootstraps 2 modules that are added by default.
+You can ignore these for now, we'll explain them towards the end of this post.
+
+=== Testing the application
+
+Apart from running the main class, you should also be able to run the integration test: `ITDemoApplication`.
+
+If you want to run all integration tests from the terminal, you can do:
+
+ $ mvn integration-test
+
+But usually I just execute the test class or test method directly from the IDE.
+
+The integration tests bootstraps the entire `DemoApplication` as well, and is pre-configured for a Spring MVC testing scenario (using `MockMvc`).
+We won't be using that in the rest of this tutorial however.
+
+== Adding a component
+
+Now that we can boot up our application, let's add some code to it.
+Let's start by adding a component in the same package as the `DemoApplication` class.
+
+.src/main/java/com/example/demo/ComponentOne.java
+[source,java]
+----
+package com.example.demo;
+
+@Component
+@Slf4j
+public class ComponentOne
+{
+	public ComponentOne() {
+		LOG.info( "Component created: {}", getClass() );
+	}
+}
+----
+
+This class declares a simple bean component that should get instantiated when Spring scans the package for all classes annotated with `@Component`.
+However, when you re-run the application integration test, you *should not find* the test _Component created_ anywhere, meaning our component actually did not get created.
+
+WARNING: If you do find the output, you probably added the component to the `application` child package.
+Move it next to the `DemoApplication` instead, we will explain the purpose of the `application` package at the end of this post.
+
+In a regular `@SpringBootApplication` we would expect Spring Boot to scan the root package and all child packages below for components.
+An `@AcrossApplication` however encourages you to bundle your components in separate modules, and to only treat the application class as a descriptor for which modules should be added.
+
+In fact, if you were to manually add a `@ComponentScan` directly on the `DemoApplication` class, starting the application would fail altogether (with a specific error message).
+
+In order to continue, we must put our component in an Across module.
+
+== Creating an Across module
+
+Every module is identified by a unique name and a _module descriptor_, a class extending `AcrossModule`.
+As a convention and to help you separate your code, each module usually resides in its own base package.
+
+Let's create a package `com.example.demo.modules.one` and add a module descriptor to it:
+
+.src/main/java/com/example/demo/modules/one/ModuleOne.java
+[source,java]
+----
+package com.example.demo.modules.one;
+
+public class ModuleOne extends AcrossModule
+{
+	public static final String NAME = "ModuleOne";
+
+	@Override
+	public String getName() {
+		return NAME;
+	}
+
+	@Override
+	protected void registerDefaultApplicationContextConfigurers( Set<ApplicationContextConfigurer> contextConfigurers ) {
+		contextConfigurers.add( ComponentScanConfigurer.forAcrossModule( ModuleOne.class ) );
+	}
+}
+----
+
+This class is a module descriptor that defines a module named `ModuleOne`, and configures it so it scans its package for components when starting up.
+
+Let's move the previously created `ComponentOne` to the same package and rename it to `InternalComponentOne`.
+
+.src/main/java/com/example/demo/modules/one/InternalComponentOne.java
+[source,java]
+----
+package com.example.demo.modules.one;
+
+@Component
+@Slf4j
+public class InternalComponentOne
+{
+	public InternalComponentOne() {
+		LOG.info( "Component created: {}", getClass() );
+	}
+}
+----
+
+You should end up with the following project structure:
+
+[source]
+----
+com.example.demo/
+  modules/
+    one/
+      ModuleOne
+      InternalComponentOne
+  DemoApplication
+----
+
+We have defined a new module (`ModuleOne`) which will contain a single component (`InternalComponentOne`) when it is started.
+All that's left to do is to add our newly defined module to our application.
+We can do that by adding the module descriptor as a bean in the `DemoApplication`:
+
+.src/main/java/com/example/demo/DemoApplication.java
+[source,java]
+----
+
+@AcrossApplication(
+public class DemoApplication {
+    @Bean
+    public ModuleOne moduleOne() {
+        return new ModuleOne();
+    }
+
+    ...
+}
+----
+
+If you now run the integration test or re-start the application, you should see that `ModuleOne` was added and that `InternalComponentOne` got created.
+
+.Console output excerpt
+[source]
+----
+: ---:
+: AcrossContext: DemoApplication (AcrossContext-1)
+: Bootstrapping 3 modules in the following order:
+: 1 - ModuleOne [resources: ModuleOne]: class com.example.demo.modules.one.ModuleOne
+: 2 - DemoApplicationModule [resources: demo]: class com.foreach.across.core.DynamicAcrossModule$DynamicApplicationModule
+: 3 - AcrossContextPostProcessorModule [resources: AcrossContextPostProcessorModule]: class com.foreach.across.core.AcrossContextConfigurationModule
+: ---
+: ...
+: --- Starting module bootstrap
+:
+: 1 - ModuleOne [resources: ModuleOne]: class com.example.demo.modules.one.ModuleOne
+: Refreshing ModuleOne: startup date [Wed Sep 26 08:57:46 CEST 2018]; parent: AcrossContext-1
+: ...
+: Component created: class com.example.demo.modules.one.InternalComponentOne
+:
+: 2 - DemoApplicationModule [resources: demo]: class com.foreach.across.core.DynamicAcrossModule$DynamicApplicationModule
+----
+
+== Testing an Across module in isolation
+
+Part of the modularization aspect is that it should help you define and manage your dependencies.
+As such it is also important that you can test your modules in isolation: with the minimum set of required dependencies.
+
+Our newly created `ModuleOne` does not declare any explicit dependencies on other modules.
+So let's create a separate integration test that bootstraps our module all by itself.
+
+We can do so by using the `across-test` features that have automatically been added to the project.
+
+Create a new test class which we will use for separate module integration testing:
+
+.src/test/java/test/TestModuleBootstrapScenarios.java
+[source,java]
+----
+@Slf4j
+public class TestModuleBootstrapScenarios
+{
+	@Test
+	public void moduleOneShouldBootstrapInIsolation() {
+		try (AcrossTestContext ignore = AcrossTestBuilders.standard( false )
+		                                                  .modules( new ModuleOne() )
+		                                                  .build()) {
+			LOG.trace( "Bootstrap successful." );
+		}
+	}
+}
+----
+
+This test creates an Across context configuration that only starts `ModuleOne`.
+Since we do not need any web features, we create a `standard` configuration.
+And since we do not require a database, we disable the default test datasource (the `false` argument).
+The latter simply ensures that our test executes a bit faster.
+
+We're using a try-with-resources approach to ensure that everything gets cleaned up nicely afterwards.
+Our test simply checks that starting up works and writes a log message, we don't validate anything else.
+
+You should now have the following structure for your test code:
+
+[source]
+----
+src/
+  test/
+    java
+      com.example.demo/
+      it/
+        ITDemoApplication.java
+      test/
+        TestModuleBootstrapScenarios.java
+----
+
+
+.A note about the tests package structure
+****
+We have created no less than 3 package structures for our tests.
+This is not any form of requirement but simply a conventional approach we prefer:
+
+* `com.example.demo` contains the actual unit tests, often tests that reside in the same package as the units of code they are testing
+* `test` contains partial integration tests, integration tests for "parts of the application"
+* `it` contains the full-stack integration tests, in this case tests that bootstrap the entire application
+
+In the Maven configuration provided by the initializr, the `it` integration tests are only run with the `integration-test` goal, whereas all others are executed when using `mvn test`.
+
+****
+
+You should be able to execute test `moduleOneShouldBootstrapInIsolation()` successfully and find the following in the console output:
+
+.Test console output excerpt
+[source]
+----
+---
+AcrossContext: AcrossContext-1 (AcrossContext-1)
+Bootstrapping 2 modules in the following order:
+1 - ModuleOne [resources: ModuleOne]: class com.example.demo.modules.one.ModuleOne
+2 - AcrossContextPostProcessorModule [resources: AcrossContextPostProcessorModule]: class com.foreach.across.core.AcrossContextConfigurationModule
+---
+----
+
+The `DemoApplicationModule` - a feature of using the `@AcrossApplication` annotation - is now no longer available.
+The `AcrossContextPostProcessorModule` is automatically added by the Across framework and cannot be removed, it always exists.
+
+=== Cleaning up the test logging output
+
+You might notice that you get a lot more logging output when running this unit test.
+This is because when using `@AcrossApplication` a default logging configuration gets initialized, but that is not the case when using the `AcrossTestBuilders`.
+
+The easiest way to fix this is to provide a `logback-test.xml` in your test resources, and to import a pre-configured sample configuration which comes with the `across-test` dependency.
+
+.src/test/resources/logback-test.xml
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+	<include resource="logback-across-test.xml"/>
+</configuration>
+----
+
+When added correctly, this should be the full console output of running `moduleOneShouldBootstrapInIsolation()`:
+
+.Console output with logback-test.xml in place
+[source,xml]
+----
+AcrossBootstrapper: ---
+AcrossBootstrapper: AcrossContext: AcrossContext-1 (AcrossContext-1)
+AcrossBootstrapper: Bootstrapping 2 modules in the following order:
+AcrossBootstrapper: 1 - ModuleOne [resources: ModuleOne]: class com.example.demo.modules.one.ModuleOne
+AcrossBootstrapper: 2 - AcrossContextPostProcessorModule [resources: AcrossContextPostProcessorModule]: class com.foreach.across.core.AcrossContextConfigurationModule
+AcrossBootstrapper: ---
+AcrossConfig: Creating a default ConversionService as no valid bean 'conversionService' is present
+AcrossBootstrapper:
+AcrossBootstrapper: --- Starting module bootstrap
+AcrossBootstrapper:
+AcrossBootstrapper: 1 - ModuleOne [resources: ModuleOne]: class com.example.demo.modules.one.ModuleOne
+AcrossDevelopmentMode: Across development mode active: false
+InternalComponentOne: Component created: class com.example.demo.modules.one.InternalComponentOne
+AcrossBootstrapper:
+AcrossBootstrapper: 2 - AcrossContextPostProcessorModule [resources: AcrossContextPostProcessorModule]: class com.foreach.across.core.AcrossContextConfigurationModule
+AcrossBootstrapper: Nothing to be done - disabling module
+AcrossBootstrapper: --- Module bootstrap finished: 1 modules started
+AcrossBootstrapper:
+AcrossContext: Shutdown signal received - destroying ApplicationContext instances
+----
+
+So far we have added a single module to our application, and tested it in isolation.
+Let's make things a bit more interesting and create a second module.
+

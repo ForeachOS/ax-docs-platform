@@ -1,17 +1,25 @@
-= Application Guides
+= Application guides and tutorials
 
-[NOTE]
-====
-This documentation section is under active development.
-The navigation section on the left mostly contains placeholders for future guides.
-====
+== General guides
+* xref:modular-monoliths/index.adoc[Building a modular monolith with Spring Boot and Across]
 
-== Overview
-The following application guides are currently available:
+== Specific topics
 
-* xref:security/oauth2-sso.adoc[Integrating with OAuth2 using SSO]
+* Security
+** xref:security/oauth2-sso.adoc[Adding SSO using OAuth2]
 
-== Tutorials and how-tos
+== Other sources
 
-Some other (video) tutorials and blogs are https://across.foreach.be/documentation/tutorials[linked on a separate page].
+=== Blogs and articles
+
+* A series of articles introducing {url-EntityModule}[EntityModule] and {url-WebCmsModule}[WebCmsModule]
+** https://www.foreach.be/blog/a-crud-interface-for-your-spring-data-repository-using-across[Part 1: generating a user interface to manage your Spring Data entities]
+** https://www.foreach.be/blog/customizing-your-crud-interface-using-across[Part 2: customizing your generated user interface]
+** https://www.foreach.be/blog/managing-your-website-using-across[Part 3: from a static website to editable components using WebCmsModule]
+
+=== Videos
+
+* https://www.youtube.com/watch?v=00Jn3d12L2M[Introduction to using Across: EntityModule and WebCmsModule] - Devoxx 2017
+* https://www.youtube.com/watch?v=wcWDlU-n1uQ[Introduction to building modularized webapps using Spring and Across] - Devoxx 2016
+
 
