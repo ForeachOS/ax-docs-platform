@@ -298,7 +298,7 @@ Since we do not need any web features, we create a `standard` configuration.
 And since we do not require a database, we disable the default test datasource (the `false` argument).
 The latter simply ensures that our test executes a bit faster.
 
-We're using a try-with-resources approach to ensure that every gets cleaned up nicely afterwards.
+We're using a try-with-resources approach to ensure that everything gets cleaned up nicely afterwards.
 Our test simply checks that starting up works and writes a log message, we don't validate anything else.
 
 You should now have the following structure for your test code:
