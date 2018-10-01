@@ -229,8 +229,11 @@ We can do that by adding the module descriptor as a bean in the `DemoApplication
 .src/main/java/com/example/demo/DemoApplication.java
 [source,java]
 ----
-
 @AcrossApplication(
+		modules = {
+
+		}
+)
 public class DemoApplication {
     @Bean
     public ModuleOne moduleOne() {
@@ -401,9 +404,11 @@ package com.example.demo.modules.two;
 
 public class ModuleTwo extends AcrossModule
 {
+    public static final String NAME = "ModuleTwo";
+
 	@Override
 	public String getName() {
-		return "ModuleTwo";
+		return NAME;
 	}
 
 	@Override
