@@ -177,11 +177,9 @@ package com.example.demo.modules.one;
 
 public class ModuleOne extends AcrossModule
 {
-	public static final String NAME = "ModuleOne";
-
 	@Override
 	public String getName() {
-		return NAME;
+		return "ModuleOne";
 	}
 
 	@Override
@@ -404,11 +402,9 @@ package com.example.demo.modules.two;
 
 public class ModuleTwo extends AcrossModule
 {
-    public static final String NAME = "ModuleTwo";
-
 	@Override
 	public String getName() {
-		return NAME;
+		return "ModuleTwo";
 	}
 
 	@Override
@@ -1147,7 +1143,8 @@ Update the `DemoApplication` to add our newly created modules:
 
         }
 )
-public class DemoApplication {
+public class DemoApplication
+{
     @Bean
     public ModuleOne moduleOne() {
         return new ModuleOne();
@@ -1178,7 +1175,8 @@ And add an application event listener to the `application` package:
 ----
 @Component
 @Slf4j
-public class ApplicationComponent {
+public class ApplicationComponent
+{
     public ApplicationComponent() {
         LOG.info("Component created: {}", getClass());
     }
@@ -1218,7 +1216,8 @@ Our application module now also handles `SomeEvent`, let's update the applicatio
 .src/test/java/it/ITDemoApplication.java
 [source,java]
 ----
-public class ITDemoApplication {
+public class ITDemoApplication
+{
     @Autowired
     private MockMvc mockMvc;
 
