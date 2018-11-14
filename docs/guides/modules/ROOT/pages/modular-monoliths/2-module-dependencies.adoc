@@ -1,3 +1,17 @@
+= Defining module dependencies
+
+[abstract]
+--
+This section covers Across module dependencies, it shows how to:
+
+* [*] Define dependencies between components and Across modules
+* [*] Share components between modules by exposing them
+* [*] Test exposed beans and module dependencies
+
+This how-to is part of the xref:modular-monoliths/index.adoc[Building a modular monolith] series.
+It continues directly from the previous how-to on xref:modular-monoliths/1-creating-a-module.adoc[Application and modules].
+--
+
 == Adding a second module
 
 Create a second package `modules.two` and more or less copy the configuration of `ModuleOne`: create an equivalent module descriptor and internal component.
@@ -312,4 +326,6 @@ The reliable implicit ordering resulting from it is one of the foremost features
 
 Let's see how that ordering propagates throughout the application.
 Make sure you have uncommented the `@AcrossDepends` on `ModuleTwo` again before continuing.
+
+Continue to xref:modular-monoliths/2-module-dependencies.adoc[Using module components].
 

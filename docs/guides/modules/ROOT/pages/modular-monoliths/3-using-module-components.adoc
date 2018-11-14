@@ -1,3 +1,17 @@
+= Using module components
+
+[abstract]
+--
+This section goes a bit more in depth on sharing components between modules, it explains:
+
+* [*] Component ordering and how it is impacted by module dependencies
+* [*] Optional module dependencies
+* [*] How you can refresh a collection of components without module dependencies
+
+This how-to is part of the xref:modular-monoliths/index.adoc[Building a modular monolith] series.
+It continues directly from the previous how-to on xref:modular-monoliths/2-module-dependencies.adoc[Module dependencies].
+--
+
 == Component ordering
 
 We created `ExposedComponentOne` as an implementation of `Supplier<String>`.
@@ -215,5 +229,5 @@ No matter how many times you re-run the test, it will always succeed, meaning th
 
 When you get a collection of beans from different modules, they will be implicitly ordered in the bootstrap order of the modules that defined them.
 
-We find the same reliable ordering principle in event handling as well, let's look at an example with events.
+We find the same reliable ordering principle in event handling as well, let's look at an xref:modular-monoliths/4-working-with-events.adoc[example with events].
 

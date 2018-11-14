@@ -1,4 +1,18 @@
-== Working with events
+= Working with events
+
+[abstract]
+--
+This section covers event handling in an Across application, it explains:
+
+* [*] How to publish and handle events
+* [*] How event handling order is determined by the module dependencies
+* [*] The difference between implicit and explicit ordering
+
+This how-to is part of the xref:modular-monoliths/index.adoc[Building a modular monolith] series.
+It continues directly from the previous how-to on xref:modular-monoliths/3-using-module-components.adoc[Using module components].
+--
+
+== Publishing and handling events
 
 Just like with distributed systems, using events for inter-module communication can be a very effective way to reduce coupling in your application.
 Working with events in an Across application is done with the exact same features as in a regular Spring application, but module ordering influences how events are handled.
@@ -175,4 +189,6 @@ Re-run and you will see the test is green again.
 The `@Order(HIGHEST_PRECEDENCE)` breaks out of the default ordering and pushes that event listener to the very top of the handling queue.
 
 Going into the details of how the ordering works behind the scene would lead us too far, but suffice to say that reliable default ordering is a cornerstone of building modular monoliths with Spring Boot and Across.
+
+To continue this series, let's have a look at the xref:modular-monoliths/5-dynamic-application-module.adoc[Dynamic application module].
 

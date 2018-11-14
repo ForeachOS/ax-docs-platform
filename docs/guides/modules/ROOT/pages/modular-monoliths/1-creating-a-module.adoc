@@ -1,3 +1,16 @@
+= Creating an application and modules
+
+[abstract]
+--
+This section covers the basics of creating an Across application and module, it shows how to:
+
+* [*] Create a new Across application using the initializr
+* [*] Run and test your application
+* [*] Define a custom Across module and add it to your application
+* [*] Test your Across module separately
+
+This how-to is part of the xref:modular-monoliths/index.adoc[Building a modular monolith] series.
+--
 
 == Creating our application
 Let's start by creating our Spring Boot application.
@@ -360,5 +373,5 @@ AcrossContext: Shutdown signal received - destroying ApplicationContext instance
 ----
 
 So far we have added a single module to our application, and tested it in isolation.
-Let's make things a bit more interesting and create a second module.
+Let's make things a bit more interesting and xref:modular-monoliths/2-module-dependencies.adoc[add a second module].
 

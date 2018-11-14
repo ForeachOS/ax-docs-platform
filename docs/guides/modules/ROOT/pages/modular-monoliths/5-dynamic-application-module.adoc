@@ -1,6 +1,16 @@
+= The dynamic application module
+
+[abstract]
+--
+This section covers the dynamic application module.
+
+This how-to is part of the xref:modular-monoliths/index.adoc[Building a modular monolith] series.
+It continues directly from the previous how-to on xref:modular-monoliths/4-working-with-events.adoc[Working with events].
+--
+
 == Revisiting the Across application
 
-Early on in this post I promised to get back to the `DemoApplicationModule` and `AcrossContextPostProcessorModule` that you get when running the `DemoApplication`.
+Early on in this series I promised to get back to the `DemoApplicationModule` and `AcrossContextPostProcessorModule` that you get when running the `DemoApplication`.
 
 .Console excerpt from starting the blank application
 [source]
@@ -25,9 +35,9 @@ Many Across applications use several shared modules and have a limited set of ap
 The dynamic application module is the default spot to put all that application specific code.
 It does not allow (or requires) you to define explicit dependencies but it always bootstraps after all other modules in the application.
 
-=== Using the application module
+== Using the application module
 
-Let's finish this tutorial with a small example of using the application module.
+Let's finish this series with a small example of using the application module.
 Update the `DemoApplication` to add our newly created modules:
 
 .src/main/java/com/example/demo/DemoApplication.java
@@ -137,4 +147,19 @@ As `SupplierService` is an exposed component, we can auto-wire it directly in ou
 Running the `eventShouldBeHandledByAllModules()` test should succeed.
 The test result illustrates that the `ApplicationComponent` gets created and the `@EventListener` method called.
 If you look at the console output, you can clearly see that the `ApplicationComponent` is part of the automatically defined `DemoApplicationModule`.
+
+== Wrapping it up
+And so we come to the end of this introduction about building modular applications with Spring Boot and Across (for now).
+We've focused on some basic concepts where the modular approach differs from a regular Spring Boot application.
+
+Features like module dependencies, reliable ordering and event handling are the very basic building blocks you'll need.
+We barely scratched the surface and there's plenty more to come.
+
+In next posts we'll tackle:
+
+* name based resolving and transitive loading of modules
+* working with conditionals for modules and components inside modules
+* how modules can manage their own installation and run data or schema migrations
+* embedding resources like message codes or templates
+
 
