@@ -581,7 +581,7 @@ To work around the issue, the wildcard static resources path must be removed by 
 [source,properties]
 ----
 # Manually specify a static resource path (remove the default /**)
-spring.mvc.static-resources-path=
+spring.mvc.static-path-pattern=
 ----
 
 ==== Missing database columns
