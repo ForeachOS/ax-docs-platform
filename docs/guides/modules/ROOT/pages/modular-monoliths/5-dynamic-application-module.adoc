@@ -1,0 +1,165 @@
+= The dynamic application module
+
+[abstract]
+--
+This section covers the dynamic application module.
+
+This how-to is part of the xref:modular-monoliths/index.adoc[Building a modular monolith] series.
+It continues directly from the previous how-to on xref:modular-monoliths/4-working-with-events.adoc[Working with events].
+--
+
+== Revisiting the Across application
+
+Early on in this series I promised to get back to the `DemoApplicationModule` and `AcrossContextPostProcessorModule` that you get when running the `DemoApplication`.
+
+.Console excerpt from starting the blank application
+[source]
+----
+: ---
+: AcrossContext: DemoApplication (AcrossContext-1)
+: Bootstrapping 2 modules in the following order:
+: 1 - DemoApplicationModule [resources: demo]: class com.foreach.across.core.DynamicAcrossModule$DynamicApplicationModule
+: 2 - AcrossContextPostProcessorModule [resources: AcrossContextPostProcessorModule]: class com.foreach.across.core.AcrossContextConfigurationModule
+: ---
+----
+
+I have already explained that the `AcrossContextPostProcessorModule` gets added to every Across based application.
+It is a technical module and going into the details of this one would lead us too far for this first post.
+
+The `DemoApplicationModule` however gets added because we use `@AcrossApplication`, and it is the equivalent of the base package in a regular `@SpringBootApplication`.
+Across encourages you to bundle all your application code inside modules that interact with each other.
+A top-level component scan is not allowed, but a default dynamic module is automatically added which uses the `application` child package as the module contents.
+
+An `AcrossModule` descriptor is not required for this module, it is entirely package based.
+Many Across applications use several shared modules and have a limited set of application-specific code using those module features.
+The dynamic application module is the default spot to put all that application specific code.
+It does not allow (or requires) you to define explicit dependencies but it always bootstraps after all other modules in the application.
+
+== Using the application module
+
+Let's finish this series with a small example of using the application module.
+Update the `DemoApplication` to add our newly created modules:
+
+.src/main/java/com/example/demo/DemoApplication.java
+[source,java]
+----
+@AcrossApplication(
+        modules = {
+
+        }
+)
+public class DemoApplication {
+    @Bean
+    public ModuleOne moduleOne() {
+        return new ModuleOne();
+    }
+
+    @Bean
+    public ModuleTwo moduleTwo() {
+        return new ModuleTwo();
+    }
+
+    @Bean
+    public ModuleThree moduleThree() {
+        return new ModuleThree();
+    }
+
+    public static void main(String[] args) {
+        SpringApplication springApplication = new SpringApplication(DemoApplication.class);
+        springApplication.setDefaultProperties(Collections.singletonMap("spring.config.location", "${user.home}/dev-configs/demo-application.yml"));
+        springApplication.run(args);
+    }
+}
+----
+
+And add an application event listener to the `application` package:
+
+.src/main/java/com/example/demo/application/ApplicationComponent.java
+[source,java]
+----
+@Component
+@Slf4j
+public class ApplicationComponent {
+    public ApplicationComponent() {
+        LOG.info("Component created: {}", getClass());
+    }
+
+    @EventListener
+    public void receive(SomeEvent event) {
+        event.add(getClass().getSimpleName());
+    }
+}
+----
+
+Your project structure should look like:
+
+[source]
+----
+com.example.demo/
+  application/
+    ApplicationComponent
+  modules/
+    SomeEvent
+    one/
+      ModuleOne
+      InternalComponentOne
+      ExposedComponentOne
+    two/
+      ModuleTwo
+      InternalComponentTwo
+      ExposedComponentTwo
+    three/
+      ModuleThree.java
+      SupplierService.java
+  DemoApplication
+----
+
+Our application module now also handles `SomeEvent`, let's update the application integration test `ITDemoApplication` to test for that:
+
+.src/test/java/it/ITDemoApplication.java
+[source,java]
+----
+public class ITDemoApplication {
+    @Autowired
+    private MockMvc mockMvc;
+
+    @Autowired
+    private SupplierService supplierService;
+
+    @Test
+    public void bootstrappedOk() throws Exception {
+        // Test should really do something - but when it gets called, bootstrap has been successful
+        assertNotNull(mockMvc);
+    }
+
+    @Test
+    public void eventShouldBeHandledByAllModules() {
+        assertEquals(
+                Arrays.asList("SupplierService", "InternalComponentOne", "InternalComponentTwo", "ApplicationComponent"),
+                supplierService.getEventListeners()
+        );
+    }
+}
+----
+
+As `SupplierService` is an exposed component, we can auto-wire it directly in our Spring integration test class.
+
+Running the `eventShouldBeHandledByAllModules()` test should succeed.
+The test result illustrates that the `ApplicationComponent` gets created and the `@EventListener` method called.
+If you look at the console output, you can clearly see that the `ApplicationComponent` is part of the automatically defined `DemoApplicationModule`.
+
+== Wrapping it up
+And so we come to the end of this introduction about building modular applications with Spring Boot and Across (for now).
+We've focused on some basic concepts where the modular approach differs from a regular Spring Boot application.
+
+Features like module dependencies, reliable ordering and event handling are the very basic building blocks you'll need.
+We barely scratched the surface and there's plenty more to come.
+
+In next posts we'll tackle:
+
+* name based resolving and transitive loading of modules
+* working with conditionals for modules and components inside modules
+* how modules can manage their own installation and run data or schema migrations
+* embedding resources like message codes or templates
+
+

@@ -1,0 +1,8 @@
+= Migration Guides
+
+Migration guides focus on the heavy impact and often breaking changes between versions.
+They help you upgrade from one version to the next.
+
+The following migration guides are available:
+
+* xref:platform-2-0-to-2-1.adoc[Upgrading Across Platform 2.0.x to 2.1.x]

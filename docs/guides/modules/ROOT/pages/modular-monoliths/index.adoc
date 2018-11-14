@@ -1,0 +1,58 @@
+= Building a modular monolith with Spring Boot and Across
+
+[abstract]
+--
+This is a series of how-tos that give a high-level introduction to the concepts of Across and how to build an application with it.
+This series was originally published as blog posts on https://www.foreach.be.
+--
+
+== Monolith applications
+Spring Boot is excellent for building Java applications, be it large monoliths or micro-services.
+The challenge with monolithic applications is that the architecture often degrades over time, and some times they end up becoming a _big ball of mud_.
+
+Developing your monoliths in a modular fashion can help you keep your architecture under control.
+This is where Across framework comes into play, as it allows you to structure your Spring application with modules.
+
+== About the series
+
+In this series we'll be focusing on how you can define modules with Across, and how the modular approach is different from the regular Spring approach.
+Every post in the series builds on top of the previous one, so it is best to follow them in order.
+
+These are step-by-step tutorials, explaining things on the way.
+
+We'll explain:
+
+* how to define an Across module and add it to your application
+* how to define dependencies between modules
+* how the bean creation differs from a regular Spring Boot application
+* how module dependencies impact the ordering of modules, beans and the handling of events
+
+== Requirements
+
+You need to know some Spring Boot (or at least Spring framework), Java 8 and Maven to follow this tutorial.
+We will also be using Lombok to generate some boilerplate code with annotations like `@Slf4j` and `@RequiredArgsConstructor`.
+
+== Source code
+The full source code of this tutorial is available on: https://github.com/ForeachOS/blog-modular-monoliths-across
+
+== Getting started
+
+Get started with the first post in the series: xref:modular-monoliths/1-creating-a-module.adoc[creating an application and modules].
+
+== How-to overview
+
+Available how-tos:
+
+. xref:modular-monoliths/1-creating-a-module.adoc[Creating an application and modules]
+. xref:modular-monoliths/2-module-dependencies.adoc[Defining module dependencies]
+. xref:modular-monoliths/3-using-module-components.adoc[Using module components]
+. xref:modular-monoliths/4-working-with-events.adoc[Working with events]
+. xref:modular-monoliths/5-dynamic-application-module.adoc[The dynamic application module]
+
+Future additions:
+
+* name based resolving and transitive loading of modules
+* working with conditionals for modules and components inside modules
+* how modules can manage their own installation and run data or schema migrations
+* embedding resources like message codes or templates
+

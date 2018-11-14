@@ -1,0 +1,1266 @@
+= Building a modular monolith with Spring Boot and Across
+
+// For initial publication on foreach.be
+
+Spring Boot is excellent for building Java applications, be it large monoliths or micro-services.
+The challenge with monolithic applications is that the architecture often degrades over time, and some times they end up becoming a _big ball of mud_.
+
+Developing your monoliths in a modular fashion can help you keep your architecture under control.
+This is where Across framework comes into play, as it allows you to structure your Spring application with modules.
+
+== About this post
+
+In this post we'll be focusing on how you can define modules with Across, and how the modular approach is different from the regular Spring approach.
+
+We'll explain:
+
+* how to define an Across module and add it to your application
+* how to define dependencies between modules
+* how the bean creation differs from a regular Spring Boot application
+* how module dependencies impact the ordering of modules, beans and the handling of events
+
+You need to know some Spring Boot (or at least Spring framework), Java 8 and Maven to follow this tutorial.
+We will also be using Lombok to generate some boilerplate code with annotations like `@Slf4j` and `@RequiredArgsConstructor`.
+
+We take it very much step-by-step, explaining things on the way.
+If you are more interested in the complete example, see the Github repository link at the end of this post.
+
+So let's get started.
+
+== Creating our application
+Let's start by creating our Spring Boot application.
+
+Go to http://start-across.foreach.be and ensure that the option `Blank Across application without any modules` is selected.
+Click on `Generate project`, download, unzip to a folder and import the project via the `pom.xml` in your favorite IDE.
+
+When unzipped, you should see the following folder structure:
+
+.Project structure
+[source]
+----
+src/
+  main/
+    java/
+      com/example/demo/
+        application/
+        DemoApplication.java
+    resources/
+      application.yml
+      application-dev.yml
+      application-prod.yml
+      build.properties
+  test/
+    java/
+      com/example/demo/application/
+      it/
+        ITDemoApplication.java
+.gitignore
+README.md
+lombok.config
+pom.xml
+----
+
+There's only 2 java classes added:
+
+* `DemoApplication` which represents the Spring Boot application
+* `ITDemoApplication` which is an integration test for bootstrapping the application
+
+Let's a have quick look at the source code of `DemoApplication`:
+
+.src/main/java/com/example/demo/DemoApplication.java
+[source,java]
+----
+@AcrossApplication(
+		modules = {
+
+		}
+)
+public class DemoApplication
+{
+	public static void main( String[] args ) {
+		SpringApplication springApplication = new SpringApplication( DemoApplication.class );
+		springApplication.setDefaultProperties( Collections.singletonMap( "spring.config.location", "${user.home}/dev-configs/demo-application.yml" ) );
+		springApplication.run( args );
+	}
+}
+----
+
+This is run as a `SpringApplication` but instead of `@SpringBootApplication` the class is annotated with `@AcrossApplication` signaling we want to bootstrap as a modular application based on Across.
+
+In an Across application we also call this file the *application descriptor*.
+
+Currently our application descriptor is empty, there are no modules added to it.
+Let's boot up our newly created application.
+
+=== Run the application
+
+You can simply execute the `DemoApplication` `main` method to run the application.
+From a terminal you can also use the following command:
+
+ $ mvn spring-boot:run
+
+When starting up the application, you should find the following in the console output:
+
+[source]
+----
+: ---
+: AcrossContext: DemoApplication (AcrossContext-1)
+: Bootstrapping 2 modules in the following order:
+: 1 - DemoApplicationModule [resources: demo]: class com.foreach.across.core.DynamicAcrossModule$DynamicApplicationModule
+: 2 - AcrossContextPostProcessorModule [resources: AcrossContextPostProcessorModule]: class com.foreach.across.core.AcrossContextConfigurationModule
+: ---
+----
+
+This is a very important piece of information for our application: it tells us which modules are being started and in which order.
+We will come back to this later on, but you should make sure you can always easily retrieve this from the logs.
+
+Even though we don't specify any modules ourselves, we can see that the application bootstraps 2 modules that are added by default.
+You can ignore these for now, we'll explain them towards the end of this post.
+
+=== Testing the application
+
+Apart from running the main class, you should also be able to run the integration test: `ITDemoApplication`.
+
+If you want to run all integration tests from the terminal, you can do:
+
+ $ mvn integration-test
+
+But usually I just execute the test class or test method directly from the IDE.
+
+The integration tests bootstraps the entire `DemoApplication` as well, and is pre-configured for a Spring MVC testing scenario (using `MockMvc`).
+We won't be using that in the rest of this tutorial however.
+
+== Adding a component
+
+Now that we can boot up our application, let's add some code to it.
+Let's start by adding a component in the same package as the `DemoApplication` class.
+
+.src/main/java/com/example/demo/ComponentOne.java
+[source,java]
+----
+package com.example.demo;
+
+@Component
+@Slf4j
+public class ComponentOne
+{
+	public ComponentOne() {
+		LOG.info( "Component created: {}", getClass() );
+	}
+}
+----
+
+This class declares a simple bean component that should get instantiated when Spring scans the package for all classes annotated with `@Component`.
+However, when you re-run the application integration test, you *should not find* the test _Component created_ anywhere, meaning our component actually did not get created.
+
+WARNING: If you do find the output, you probably added the component to the `application` child package.
+Move it next to the `DemoApplication` instead, we will explain the purpose of the `application` package at the end of this post.
+
+In a regular `@SpringBootApplication` we would expect Spring Boot to scan the root package and all child packages below for components.
+An `@AcrossApplication` however encourages you to bundle your components in separate modules, and to only treat the application class as a descriptor for which modules should be added.
+
+In fact, if you were to manually add a `@ComponentScan` directly on the `DemoApplication` class, starting the application would fail altogether (with a specific error message).
+
+In order to continue, we must put our component in an Across module.
+
+== Creating an Across module
+
+Every module is identified by a unique name and a _module descriptor_, a class extending `AcrossModule`.
+As a convention and to help you separate your code, each module usually resides in its own base package.
+
+Let's create a package `com.example.demo.modules.one` and add a module descriptor to it:
+
+.src/main/java/com/example/demo/modules/one/ModuleOne.java
+[source,java]
+----
+package com.example.demo.modules.one;
+
+public class ModuleOne extends AcrossModule
+{
+	@Override
+	public String getName() {
+		return "ModuleOne";
+	}
+
+	@Override
+	protected void registerDefaultApplicationContextConfigurers( Set<ApplicationContextConfigurer> contextConfigurers ) {
+		contextConfigurers.add( ComponentScanConfigurer.forAcrossModule( ModuleOne.class ) );
+	}
+}
+----
+
+This class is a module descriptor that defines a module named `ModuleOne`, and configures it so it scans its package for components when starting up.
+
+Let's move the previously created `ComponentOne` to the same package and rename it to `InternalComponentOne`.
+
+.src/main/java/com/example/demo/modules/one/InternalComponentOne.java
+[source,java]
+----
+package com.example.demo.modules.one;
+
+@Component
+@Slf4j
+public class InternalComponentOne
+{
+	public InternalComponentOne() {
+		LOG.info( "Component created: {}", getClass() );
+	}
+}
+----
+
+You should end up with the following project structure:
+
+[source]
+----
+com.example.demo/
+  modules/
+    one/
+      ModuleOne
+      InternalComponentOne
+  DemoApplication
+----
+
+We have defined a new module (`ModuleOne`) which will contain a single component (`InternalComponentOne`) when it is started.
+All that's left to do is to add our newly defined module to our application.
+We can do that by adding the module descriptor as a bean in the `DemoApplication`:
+
+.src/main/java/com/example/demo/DemoApplication.java
+[source,java]
+----
+@AcrossApplication(
+		modules = {
+
+		}
+)
+public class DemoApplication {
+    @Bean
+    public ModuleOne moduleOne() {
+        return new ModuleOne();
+    }
+
+    ...
+}
+----
+
+If you now run the integration test or re-start the application, you should see that `ModuleOne` was added and that `InternalComponentOne` got created.
+
+.Console output excerpt
+[source]
+----
+: ---:
+: AcrossContext: DemoApplication (AcrossContext-1)
+: Bootstrapping 3 modules in the following order:
+: 1 - ModuleOne [resources: ModuleOne]: class com.example.demo.modules.one.ModuleOne
+: 2 - DemoApplicationModule [resources: demo]: class com.foreach.across.core.DynamicAcrossModule$DynamicApplicationModule
+: 3 - AcrossContextPostProcessorModule [resources: AcrossContextPostProcessorModule]: class com.foreach.across.core.AcrossContextConfigurationModule
+: ---
+: ...
+: --- Starting module bootstrap
+:
+: 1 - ModuleOne [resources: ModuleOne]: class com.example.demo.modules.one.ModuleOne
+: Refreshing ModuleOne: startup date [Wed Sep 26 08:57:46 CEST 2018]; parent: AcrossContext-1
+: ...
+: Component created: class com.example.demo.modules.one.InternalComponentOne
+:
+: 2 - DemoApplicationModule [resources: demo]: class com.foreach.across.core.DynamicAcrossModule$DynamicApplicationModule
+----
+
+== Testing an Across module in isolation
+
+Part of the modularization aspect is that it should help you define and manage your dependencies.
+As such it is also important that you can test your modules in isolation: with the minimum set of required dependencies.
+
+Our newly created `ModuleOne` does not declare any explicit dependencies on other modules.
+So let's create a separate integration test that bootstraps our module all by itself.
+
+We can do so by using the `across-test` features that have automatically been added to the project.
+
+Create a new test class which we will use for separate module integration testing:
+
+.src/test/java/test/TestModuleBootstrapScenarios.java
+[source,java]
+----
+@Slf4j
+public class TestModuleBootstrapScenarios
+{
+	@Test
+	public void moduleOneShouldBootstrapInIsolation() {
+		try (AcrossTestContext ignore = AcrossTestBuilders.standard( false )
+		                                                  .modules( new ModuleOne() )
+		                                                  .build()) {
+			LOG.trace( "Bootstrap successful." );
+		}
+	}
+}
+----
+
+This test creates an Across context configuration that only starts `ModuleOne`.
+Since we do not need any web features, we create a `standard` configuration.
+And since we do not require a database, we disable the default test datasource (the `false` argument).
+The latter simply ensures that our test executes a bit faster.
+
+We're using a try-with-resources approach to ensure that everything gets cleaned up nicely afterwards.
+Our test simply checks that starting up works and writes a log message, we don't validate anything else.
+
+You should now have the following structure for your test code:
+
+[source]
+----
+src/
+  test/
+    java
+      com.example.demo/
+      it/
+        ITDemoApplication.java
+      test/
+        TestModuleBootstrapScenarios.java
+----
+
+
+.A note about the tests package structure
+****
+We have created no less than 3 package structures for our tests.
+This is not any form of requirement but simply a conventional approach we prefer:
+
+* `com.example.demo` contains the actual unit tests, often tests that reside in the same package as the units of code they are testing
+* `test` contains partial integration tests, integration tests for "parts of the application"
+* `it` contains the full-stack integration tests, in this case tests that bootstrap the entire application
+
+In the Maven configuration provided by the initializr, the `it` integration tests are only run with the `integration-test` goal, whereas all others are executed when using `mvn test`.
+
+****
+
+You should be able to execute test `moduleOneShouldBootstrapInIsolation()` successfully and find the following in the console output:
+
+.Test console output excerpt
+[source]
+----
+---
+AcrossContext: AcrossContext-1 (AcrossContext-1)
+Bootstrapping 2 modules in the following order:
+1 - ModuleOne [resources: ModuleOne]: class com.example.demo.modules.one.ModuleOne
+2 - AcrossContextPostProcessorModule [resources: AcrossContextPostProcessorModule]: class com.foreach.across.core.AcrossContextConfigurationModule
+---
+----
+
+The `DemoApplicationModule` - a feature of using the `@AcrossApplication` annotation - is now no longer available.
+The `AcrossContextPostProcessorModule` is automatically added by the Across framework and cannot be removed, it always exists.
+
+=== Cleaning up the test logging output
+
+You might notice that you get a lot more logging output when running this unit test.
+This is because when using `@AcrossApplication` a default logging configuration gets initialized, but that is not the case when using the `AcrossTestBuilders`.
+
+The easiest way to fix this is to provide a `logback-test.xml` in your test resources, and to import a pre-configured sample configuration which comes with the `across-test` dependency.
+
+.src/test/resources/logback-test.xml
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+	<include resource="logback-across-test.xml"/>
+</configuration>
+----
+
+When added correctly, this should be the full console output of running `moduleOneShouldBootstrapInIsolation()`:
+
+.Console output with logback-test.xml in place
+[source,xml]
+----
+AcrossBootstrapper: ---
+AcrossBootstrapper: AcrossContext: AcrossContext-1 (AcrossContext-1)
+AcrossBootstrapper: Bootstrapping 2 modules in the following order:
+AcrossBootstrapper: 1 - ModuleOne [resources: ModuleOne]: class com.example.demo.modules.one.ModuleOne
+AcrossBootstrapper: 2 - AcrossContextPostProcessorModule [resources: AcrossContextPostProcessorModule]: class com.foreach.across.core.AcrossContextConfigurationModule
+AcrossBootstrapper: ---
+AcrossConfig: Creating a default ConversionService as no valid bean 'conversionService' is present
+AcrossBootstrapper:
+AcrossBootstrapper: --- Starting module bootstrap
+AcrossBootstrapper:
+AcrossBootstrapper: 1 - ModuleOne [resources: ModuleOne]: class com.example.demo.modules.one.ModuleOne
+AcrossDevelopmentMode: Across development mode active: false
+InternalComponentOne: Component created: class com.example.demo.modules.one.InternalComponentOne
+AcrossBootstrapper:
+AcrossBootstrapper: 2 - AcrossContextPostProcessorModule [resources: AcrossContextPostProcessorModule]: class com.foreach.across.core.AcrossContextConfigurationModule
+AcrossBootstrapper: Nothing to be done - disabling module
+AcrossBootstrapper: --- Module bootstrap finished: 1 modules started
+AcrossBootstrapper:
+AcrossContext: Shutdown signal received - destroying ApplicationContext instances
+----
+
+So far we have added a single module to our application, and tested it in isolation.
+Let's make things a bit more interesting and create a second module.
+
+== Adding a second module
+
+Create a second package `modules.two` and more or less copy the configuration of `ModuleOne`: create an equivalent module descriptor and internal component.
+
+./src/main/java/com/example/demo/modules/two/ModuleTwo.java
+[source,java]
+----
+package com.example.demo.modules.two;
+
+public class ModuleTwo extends AcrossModule
+{
+	@Override
+	public String getName() {
+		return "ModuleTwo";
+	}
+
+	@Override
+	protected void registerDefaultApplicationContextConfigurers( Set<ApplicationContextConfigurer> contextConfigurers ) {
+		contextConfigurers.add( ComponentScanConfigurer.forAcrossModule( ModuleTwo.class ) );
+	}
+}
+----
+
+./src/main/java/com/example/demo/modules/two/InternalComponentTwo.java
+[source,java]
+----
+package com.example.demo.modules.two;
+
+@Component
+@Slf4j
+public class InternalComponentTwo
+{
+	public InternalComponentTwo() {
+		LOG.info( "Component created: {}", getClass() );
+	}
+}
+----
+
+Your project structure now looks like:
+
+[source]
+----
+com.example.demo/
+  modules/
+    one/
+      ModuleOne
+      InternalComponentOne
+    two/
+      ModuleTwo
+      InternalComponentTwo
+  DemoApplication
+----
+
+Add an integration test for the second module.
+
+.src/test/java/test/TestModuleBootstrapScenarios.java
+[source,java]
+----
+@Test
+public void moduleTwoShouldBootstrap() {
+    try (AcrossTestContext ignore = AcrossTestBuilders.standard( false ).modules( new ModuleTwo() ).build()) {
+        LOG.trace( "Bootstrap successful." );
+    }
+}
+----
+
+You should be able to run this test successfully.
+
+=== Adding a component dependency
+
+Let's add a component dependency on `InternalComponentTwo`.
+Add a constructor injection dependency to component `InternalComponentOne`.
+
+.src/main/java/com/example/demo/modules/two/InternalComponentTwo.java
+[source,java]
+----
+@Component
+@Slf4j
+public class InternalComponentTwo
+{
+    private final InternalComponentOne internalComponentOne;
+
+    public InternalComponentTwo(InternalComponentOne internalComponentOne) {
+        LOG.info("Component created: {} (using {})", getClass(), internalComponentOne);
+
+        this.internalComponentOne = internalComponentOne;
+    }
+}
+----
+
+This is a regular Spring bean dependency.
+This code compiles as `InternalComponentOne` is a public class, but if you run the test, it fails with exception:
+
+ No qualifying bean of type 'com.example.demo.modules.one.InternalComponentOne' available
+
+Which makes sense, as `InternalComponentOne` is a bean created in `ModuleOne` but our `ModuleTwo` does not have a dependency on `ModuleOne`.
+
+=== Adding a module dependency
+
+In a module approach, a module can explicitly define a dependency on another module.
+You can do so using `@AcrossDepends` on the module descriptor.
+
+Change the `ModuleTwo` descriptor to add an explicit dependency on `ModuleOne`.
+
+[source,java]
+----
+package com.example.demo.modules.two;
+
+@AcrossDepends(required = "ModuleOne")
+public class ModuleTwo extends AcrossModule
+{
+    ...
+}
+----
+
+This dependency is `required`, meaning that the application must not start if the dependency is not met.
+We refer to the module we depend on by name, as a module name is expected to be unique.
+
+If you re-run the `moduleTwoShouldBootstrap()` test, it now fails with another, clear exception:
+
+ com.foreach.across.core.context.bootstrap.ModuleDependencyMissingException: Unable to bootstrap AcrossContext as module ModuleTwo requires module ModuleOne. Module ModuleOne is not present in the context.
+
+This is expected behaviour.
+We have stipulated a dependency on `ModuleOne`, but have not added `ModuleOne` to our test configuration yet.
+
+=== Cleaning up the tests
+Let's split up our single test case into two separate tests:
+
+* one that verifies bootstrapping fails if `ModuleOne` is not present
+* one that verifies bootstrapping works if `ModuleOne` is present
+
+.src/test/java/test/TestModuleBootstrapScenarios.java
+[source,java]
+----
+@Test(expected = ModuleDependencyMissingException.class)
+public void moduleTwoRequiresModuleOne() {
+    try (AcrossTestContext ignore = AcrossTestBuilders.standard( false )
+                                                      .modules( new ModuleTwo() )
+                                                      .build()) {
+        fail( "Should not have bootstrapped." );
+    }
+}
+
+@Test
+public void moduleTwoBootstrapsIfOneIsPresent() {
+    try (AcrossTestContext ignore = AcrossTestBuilders.standard( false )
+                                                      .modules( new ModuleTwo(), new ModuleOne() )
+                                                      .build()) {
+        LOG.trace( "Bootstrap successful." );
+    }
+}
+----
+
+If we run the tests, `moduleTwoRequiresModuleOne()` succeeds, but `moduleTwoBootstrapsIfOneIsPresent()` fails again with the original exception:
+
+ No qualifying bean of type 'com.example.demo.modules.one.InternalComponentOne' available
+
+Even though in the console log we can see that `InternalComponentOne` gets created:
+
+[source]
+----
+: --- Starting module bootstrap
+:
+: 1 - ModuleOne [resources: ModuleOne]: class com.example.demo.modules.one.ModuleOne
+: Across development mode active: false
+: Component created: class com.example.demo.modules.one.InternalComponentOne
+:
+: 2 - ModuleTwo [resources: ModuleTwo]: class com.example.demo.modules.two.ModuleTwo
+: Exception encountered during context initialization
+----
+
+`ModuleOne` starts up fine and creates `InternalComponentOne`, but bootstrapping `ModuleTwo` fails when it tries to resolve the `InternalComponentOne` dependency.
+
+So what is going on here?
+
+=== Exposing beans
+
+In a modular approach with Across, all beans are contained within their module unless otherwise _exposed_.
+This means that even though `InternalComponentOne` is a publicly accessible class, and there is a singleton bean created for it, that bean can only be accessed from within `ModuleOne`.
+For `ModuleTwo` there is no component `InternalComponentOne` available.
+
+To fix this, we can _expose_ `InternalComponentOne` by annotating it with `@Exposed`.
+Instead of exposing the internal component however, let's create a separate exposed component and use that one as a dependency in `InternalComponentTwo`.
+
+.src/main/java/com/example/demo/modules/one/ExposedComponentOne.java
+[source,java]
+----
+package com.example.demo.modules.one;
+
+@Component
+@Exposed
+public class ExposedComponentOne implements Supplier<String>
+{
+	@Override
+	public String get() {
+		return "hello from module one";
+	}
+}
+----
+
+.src/main/java/com/example/demo/modules/two/InternalComponentTwo.java
+[source,java]
+----
+@Component
+@Slf4j
+public class InternalComponentTwo
+{
+	private final ExposedComponentOne exposedComponentOne;
+
+	public InternalComponentTwo( ExposedComponentOne exposedComponentOne ) {
+		LOG.info( "Component created: {} (using {})", getClass(), exposedComponentOne );
+
+		this.exposedComponentOne = exposedComponentOne;
+	}
+}
+----
+
+Your project structure should look like:
+
+[source]
+----
+com.example.demo/
+  modules/
+    one/
+      ModuleOne
+      InternalComponentOne
+      ExposedComponentOne
+    two/
+      ModuleTwo
+      InternalComponentTwo
+  DemoApplication
+----
+
+All tests should be green.
+
+=== Verifying exposed beans
+
+Our integration test for `ModuleTwo` indirectly tests that `ModuleOne` exposes the correct component.
+Often you also want to test in the scope of your module which beans it exposed.
+Let's update the module one test accordingly:
+
+.src/test/java/test/TestModuleBootstrapScenarios.java
+[source,java]
+----
+@Test
+public void moduleOneShouldBootstrapInIsolation() {
+    try (AcrossTestContext context = AcrossTestBuilders.standard(false)
+            .modules(new ModuleOne())
+            .build()) {
+        assertNotNull(context.getBeanOfType(ExposedComponentOne.class));
+    }
+}
+----
+
+We use the `AcrossTestContext` to retrieve the exposed bean.
+If you comment or remove `@Exposed` on `ExposedComponentOne`, this test will fail.
+
+As we'll see in another example below, there are other ways to expose beans.
+
+== Module ordering
+
+In a regular Spring application, beans often know which other beans exist even before those other beans have been created.
+In an Across application this works differently: a bean can only know which beans another module provides once that other module has started.
+This means that even though `ExposedComponentOne` is exposed, it is required that `ModuleOne` is fully bootstrapped before `ModuleTwo` attempts to retrieve the exposed bean.
+
+It is the correct use of `@AcrossDepends` that ensures this: `ModuleTwo` explicitly depends on `ModuleOne`, which means `ModuleOne` will be guaranteed to have been started before `ModuleTwo`.
+This also means that all components that make up `ModuleOne` will have been created.
+This type of ordering is fundamentally different from regular Spring applications, in which it is quite difficult to ensure the creation order of an entire group of beans, without depending on each one of them separately.
+
+This type of reliable bootstrap ordering also means that cyclic dependencies are not possible: having a cyclic dependency between 2 modules (direct or indirect) will not allow your application to start.
+
+Let's put it to the test.
+
+=== Non-deterministic bootstrap order
+
+Put the `@AcrossDepends(required = "ModuleOne")` annotation on `ModuleTwo` in comments.
+
+Now let's look at our test method:
+
+.src/test/java/test/TestModuleBootstrapScenarios.java
+[source,java]
+----
+@Test
+public void moduleTwoBootstrapsIfOneIsPresent() {
+    try (AcrossTestContext ignore = AcrossTestBuilders.standard(false)
+            .modules(new ModuleTwo(), new ModuleOne())
+            .build()) {
+        LOG.trace("Bootstrap successful.");
+    }
+}
+----
+
+We no longer have defined a dependency between `ModuleOne` and `ModuleTwo`, this means _they don't care about each other_.
+In our test configuration example, we register them with `.modules(new ModuleTwo(), new ModuleOne())`: `ModuleTwo` is registered before `ModuleOne`.
+Since there is no dependency based ordering, the registration order will be kept, causing the test to fail.
+
+Play around with reversing the registration order, in the console output you can clearly see its impact on the bootstrap order:
+
+.Test console output excerpt
+[source]
+----
+: AcrossContext: AcrossContext-1 (AcrossContext-1)
+: Bootstrapping 3 modules in the following order:
+: 1 - ModuleTwo [resources: ModuleTwo]: class com.example.demo.modules.two.ModuleTwo
+: 2 - ModuleOne [resources: ModuleOne]: class com.example.demo.modules.one.ModuleOne
+: 3 - AcrossContextPostProcessorModule [resources: AcrossContextPostProcessorModule]: class com.foreach.across.core.AcrossContextConfigurationModule
+: ---
+----
+
+This illustrates the importance of clearly defining your module dependencies.
+The reliable implicit ordering resulting from it is one of the foremost features for building modular applications.
+
+Let's see how that ordering propagates throughout the application.
+Make sure you have uncommented the `@AcrossDepends` on `ModuleTwo` again before continuing.
+
+== Component ordering
+
+We created `ExposedComponentOne` as an implementation of `Supplier<String>`.
+Let's create another new module which has a component that retrieves all `Supplier<String>` implementations and returns their class names.
+
+Start by adding the module descriptor for `ModuleThree` which declares a dependency on `ModuleOne`:
+
+.src/main/java/com/example/demo/modules/three/ModuleThree.java
+[source,java]
+----
+package com.example.demo.modules.three;
+
+@AcrossDepends(required="ModuleOne")
+public class ModuleThree extends AcrossModule
+{
+	@Override
+	public String getName() {
+		return "ModuleThree";
+	}
+
+	@Override
+	protected void registerDefaultApplicationContextConfigurers( Set<ApplicationContextConfigurer> contextConfigurers ) {
+		contextConfigurers.add( ComponentScanConfigurer.forAcrossModule( ModuleThree.class ) );
+	}
+}
+----
+
+Add a `SupplierService` component which wires all `Supplier<String>` beans.
+
+.src/main/java/com/example/demo/modules/three/SupplierService.java
+[source,java]
+----
+package com.example.demo.modules.three;
+
+@Service
+@RequiredArgsConstructor
+public class SupplierService
+{
+	private Collection<Supplier<String>> suppliers = Collections.emptyList();
+
+	@Autowired
+	public void setSuppliers( Collection<Supplier<String>> suppliers ) {
+		this.suppliers = suppliers;
+	}
+
+	public Collection<String> getSupplierNames() {
+		return suppliers.stream()
+		                .map( Object::getClass )
+		                .map( Class::getSimpleName )
+		                .collect( Collectors.toList() );
+	}
+}
+----
+
+Because we will change it later on, we deliberately use setter injection with `@Autowired` in this class.
+
+We want to have the `SupplierService` exposed for other modules, but instead of a regular `@Component @Exposed` we use the `@Service` annotation.
+Beans annotated with `@Service` are exposed by default.
+
+Your project structure should now look like:
+
+[source]
+----
+com.example.demo/
+  modules/
+    one/
+      ModuleOne
+      InternalComponentOne
+      ExposedComponentOne
+    two/
+      ModuleTwo
+      InternalComponentTwo
+    three/
+      ModuleThree.java
+      SupplierService.java
+  DemoApplication
+----
+
+Add an integration test to check that our `SupplierService` finds the `ExposedComponentOne` implementation.
+
+.src/test/java/test/TestModuleBootstrapScenarios.java
+[source,java]
+----
+@Test
+public void supplierServiceFromModuleThreeListsDetectedSuppliers() {
+    try (AcrossTestContext ctx = AcrossTestBuilders.standard(false)
+            .modules(new ModuleThree(), new ModuleOne())
+            .build()) {
+        SupplierService supplierService = ctx.getBeanOfType(SupplierService.class);
+        assertEquals(Collections.singletonList("ExposedComponentOne"), supplierService.getSupplierNames());
+    }
+}
+----
+
+This test should succeed:
+
+* because of the module dependencies, `ModuleThree` starts after `ModuleOne` and can access the exposed `ExposedComponentOne`
+* `SupplierService` is created with the list of `Supplier<String>` beans it can find, which currently is only `ExposedComponentOne`
+* `SupplierService` is itself is exposed and can be accessed from the unit test
+
+=== Adding an exposed component
+
+Let's also add an exposed component implementing `Supplier<String>` to `ModuleTwo`:
+
+.src/main/java/com/example/demo/modules/two/ExposedComponentTwo.java
+[source,java]
+----
+package com.example.demo.modules.two;
+
+@Component
+@Exposed
+public class ExposedComponentTwo implements Supplier<String>
+{
+	@Override
+	public String get() {
+		return "hello from module two";
+	}
+}
+----
+
+If we want to ensure that our `SupplierService` can also detect this component, we now also need to make sure that `ModuleThree` starts after `ModuleTwo`.
+We could add another required dependency, but that would mean that `ModuleThree` will only start if both `ModuleOne` and `ModuleTwo` are present.
+
+But what if we simply want `ModuleThree` to list the available suppliers, without enforcing any other modules to be present?
+
+=== Optional module dependencies
+
+Suppose we change our integration test for the the `SupplierService` to the following:
+
+.src/test/java/test/TestModuleBootstrapScenarios.java
+[source,java]
+----
+@Test
+public void supplierServiceFromModuleThreeListsDetectedSuppliersInOrder() {
+    expectSuppliers( Collections.emptyList() );
+    expectSuppliers( Collections.singletonList( "ExposedComponentOne" ), new ModuleOne() );
+    expectSuppliers( Arrays.asList( "ExposedComponentOne", "ExposedComponentTwo" ), new ModuleOne(), new ModuleTwo() );
+}
+
+private void expectSuppliers( Collection<String> names, AcrossModule... additionalModules ) {
+    try (AcrossTestContext ctx = AcrossTestBuilders.standard( false )
+                                                   .modules( new ModuleThree() )
+                                                   .modules( additionalModules )
+                                                   .build()) {
+        SupplierService supplierService = ctx.getBeanOfType( SupplierService.class );
+        assertEquals( names, supplierService.getSupplierNames() );
+    }
+}
+----
+
+This test bootstraps different module combinations, and tests that the `SupplierService` always detects the correct set of suppliers.
+
+One way we can make this test succeed is to put optional dependencies on `ModuleThree`:
+
+.src/main/java/com/example/demo/modules/three/ModuleThree.java
+[source,java]
+----
+@AcrossDepends(optional={"ModuleOne", "ModuleTwo"})
+public class ModuleThree extends AcrossModule
+{
+	...
+}
+----
+
+And to make the `Collection<Supplier<String>>` dependency optional as well:
+
+.src/main/java/com/example/demo/modules/three/SupplierService.java
+[source,java]
+----
+public class SupplierService
+{
+    ...
+    @Autowired(required=false)
+    public void setSuppliers(Collection<Supplier<String>> suppliers) {
+        this.suppliers = suppliers;
+    }
+    ....
+}
+----
+
+The difference between a required and an optional module dependency is as follows:
+
+* If a required dependency is missing, the bootstrap will fail. If an optional dependency is missing, bootstrap will continue as normal.
+* Cyclic required dependencies are not allowed, and a required dependency is guaranteed to have started before the module depending on it.
+Cyclic optional dependencies are not advised but possible: a best-effort attempt will be made to start an optional dependency before the module depending on it.
+
+Even though the test is now successful, this is not an optimal approach: whenever we add another module we would have to update the `ModuleThree` dependencies to ensure it can detect the `Supplier`.
+A different way to tackle this type of problem is to use a refreshable collection.
+
+=== Using a refreshable collection
+
+A refreshable collection is a collection type dependency that will update itself once all modules in an application have been started.
+
+Remove `@AcrossDepends` from the `ModuleThree` class, and replace the `@Autowired(required=false)` from the `SupplierService` by `@RefreshableCollection`:
+
+.src/main/java/com/example/demo/modules/three/SupplierService.java
+[source,java]
+----
+public class SupplierService
+{
+    ...
+    @RefreshableCollection
+    public void setSuppliers(Collection<Supplier<String>> suppliers) {
+        this.suppliers = suppliers;
+    }
+    ....
+}
+----
+
+When you run the tests you will see they all succeed.
+Even though `ModuleThree` no longer has any module dependencies and might even bootstrap before `ModuleOne` and `ModuleTwo`, the collection of suppliers is always up-to-date once the entire application has started.
+
+Another very important fact is that result of `SupplierService.getSupplierNames()` is deterministic.
+No matter how many times you re-run the test, it will always succeed, meaning that the beans are always returned in exactly the same order.
+
+When you get a collection of beans from different modules, they will be implicitly ordered in the bootstrap order of the modules that defined them.
+
+We find the same reliable ordering principle in event handling as well, let's look at an example with events.
+
+== Working with events
+
+Just like with distributed systems, using events for inter-module communication can be a very effective way to reduce coupling in your application.
+Working with events in an Across application is done with the exact same features as in a regular Spring application, but module ordering influences how events are handled.
+Let's have a look.
+
+Create a sample `SomeEvent` class which we will publish.
+In this case, put it in the `com.example.demo.modules` package to illustrate it is part of the code shared between all modules.
+
+.src/main/java/com/example/demo/modules/SomeEvent.java
+[source,java]
+----
+package com.example.demo.modules;
+
+import java.util.ArrayList;
+
+public class SomeEvent extends ArrayList<String>
+{
+}
+----
+
+Our event is nothing more than an `ArrayList` implementation to which every listener will add its own name.
+
+Update the `SupplierService` with a new method which publishes the event and returns the names of all listeners that handled it.
+At the same time, add an `@EventListener` method in the `SupplierService` which listens for the same event.
+
+.src/main/java/com/example/demo/modules/three/SupplierService.java
+[source,java]
+----
+@Service
+@RequiredArgsConstructor
+public class SupplierService
+{
+	private final ApplicationEventPublisher eventPublisher;
+
+	...
+
+	public Collection<String> getEventListeners() {
+		SomeEvent event = new SomeEvent();
+		eventPublisher.publishEvent( event );
+		return event;
+	}
+
+	@EventListener
+	public void receive( SomeEvent event ) {
+		event.add( getClass().getSimpleName() );
+	}
+}
+----
+
+Also add some event listeners to the internal components of both `ModuleOne` and `ModuleTwo`
+
+.src/main/java/com/example/demo/moduls/one/InternalComponentOne.java
+[source,java]
+----
+@Component
+@Slf4j
+public class InternalComponentOne
+{
+	...
+
+	@EventListener
+	public void receive( SomeEvent event ) {
+		event.add( getClass().getSimpleName() );
+	}
+}
+----
+
+.src/main/java/com/example/demo/moduls/two/InternalComponentTwo.java
+[source,java]
+----
+@Component
+@Slf4j
+public class InternalComponentTwo
+{
+	...
+
+	@EventListener
+	public void receive( SomeEvent event ) {
+		event.add( getClass().getSimpleName() );
+	}
+}
+----
+
+And finally write an integration test that bootstraps our modules and verifies the list of event listeners.
+
+.src/test/java/test/TestModuleBootstrapScenarios.java
+[source,java]
+----
+@Test
+public void eventIsHandledInModuleOrder() {
+    try (AcrossTestContext ctx = AcrossTestBuilders.standard( false )
+                                                   .modules( new ModuleThree(), new ModuleOne(), new ModuleTwo() )
+                                                   .build()) {
+        SupplierService supplierService = ctx.getBeanOfType( SupplierService.class );
+        assertEquals( Arrays.asList( "SupplierService", "InternalComponentOne", "InternalComponentTwo" ), supplierService.getEventListeners() );
+    }
+}
+----
+
+No matter how often you run it, this test should always succeed.
+Without explicit ordering on the `@EventListener` methods, the bootstrap order ensures that events are always handled in the same order.
+
+Here is a run-down of what happens exactly:
+
+. the modules are bootstrapped in the order `ModuleThree`, `ModuleOne`, `ModuleTwo`
+. `SomeEvent` is published by the `SupplierService` inside `ModuleThree`
+. `SomeEvent` is handled by `SupplierService.receive()`
+. `SomeEvent` is handled by `InternalComponentOne.receive()`
+. `SomeEvent` is handled by `InternalComponentTwo.receive()`
+
+Even though `SupplierService` publishes the event, it will always be handled in module order.
+This is might seem obvious with the above example, but let's shift the order around in our test:
+
+ .modules( new ModuleTwo(), new ModuleThree(), new ModuleOne() )
+
+If we simply re-run the test it now fails, as the order of handlers has changed.
+Let's go over it step-by-step:
+
+. the modules are now bootstrapped in the order `ModuleOne`, `ModuleTwo`, `ModuleThree`
+. `SomeEvent` is published by the `SupplierService` inside `ModuleThree`
+. `SomeEvent` is handled by `InternalComponentOne.receive()`
+. `SomeEvent` is handled by `InternalComponentTwo.receive()`
+. `SomeEvent` is handled by `SupplierService.receive()`
+
+Because `ModuleTwo` has a dependency on `ModuleOne`, the relative ordering of those two modules will always be the same.
+`ModuleThree` has no dependencies, and because the registration order of our configuration has changed, it is now bootstrapped as the last module.
+Even though the event is published by that module, it is last when it comes to handling that same event!
+
+Properly using events is a great way for building extensibility.
+The same event will always be handled by any module you depend on, before it is handed to you.
+Note also that any component can handle an event, event listeners do not need to be exposed.
+
+== Implicit and explicit ordering
+
+We've illustrated the impact of ordering on components and event handling.
+
+In a regular Spring application most components are considered not-ordered unless they are explicitly ordered.
+Beans will be returned in order if they implement `Ordered` or have the `@Order` annotation.
+If they have neither of these, the order in which they will be returned cannot reliably be determined.
+The same goes for `@EventListener` methods, unless explicitly ordered using `@Order`, the handling order is non-deterministic.
+
+In an Across based modular application, the order of a lot of things is implicit.
+Because module A depends on module B, it will be ordered after it, which means:
+
+* components from B will be created before the ones from A (B will bootstrap before A)
+* _unless otherwise specified_: components from B will be ordered before the ones from A in retrieval/auto-wiring scenarios
+* _unless otherwise specified_: events will be handled by event listeners from B before the ones from A, no matter who publishes the event
+
+Of course sometimes it is required to break out of the default behaviour, which is still possible (_unless otherwise specified_):
+
+* using `@OrderInModule` and equivalents you can order components inside a single module
+* using `@Order` you can influence the global ordering in your application
+
+To illustrate this, let's revisit the failing test from above, and update the `SupplierService`:
+
+.src/main/java/com/example/demo/modules/three/SupplierService.java
+[source,java]
+----
+@Service
+@RequiredArgsConstructor
+public class SupplierService
+{
+    ...
+
+	@EventListener
+	@Order(Ordered.HIGHEST_PRECEDENCE)
+	public void receive( SomeEvent event ) {
+		event.add( getClass().getSimpleName() );
+	}
+}
+----
+
+Re-run and you will see the test is green again.
+The `@Order(HIGHEST_PRECEDENCE)` breaks out of the default ordering and pushes that event listener to the very top of the handling queue.
+
+Going into the details of how the ordering works behind the scene would lead us too far, but suffice to say that reliable default ordering is a cornerstone of building modular monoliths with Spring Boot and Across.
+
+== Revisiting the Across application
+
+Early on in this post I promised to get back to the `DemoApplicationModule` and `AcrossContextPostProcessorModule` that you get when running the `DemoApplication`.
+
+.Console excerpt from starting the blank application
+[source]
+----
+: ---
+: AcrossContext: DemoApplication (AcrossContext-1)
+: Bootstrapping 2 modules in the following order:
+: 1 - DemoApplicationModule [resources: demo]: class com.foreach.across.core.DynamicAcrossModule$DynamicApplicationModule
+: 2 - AcrossContextPostProcessorModule [resources: AcrossContextPostProcessorModule]: class com.foreach.across.core.AcrossContextConfigurationModule
+: ---
+----
+
+I have already explained that the `AcrossContextPostProcessorModule` gets added to every Across based application.
+It is a technical module and going into the details of this one would lead us too far for this first post.
+
+The `DemoApplicationModule` however gets added because we use `@AcrossApplication`, and it is the equivalent of the base package in a regular `@SpringBootApplication`.
+Across encourages you to bundle all your application code inside modules that interact with each other.
+A top-level component scan is not allowed, but a default dynamic module is automatically added which uses the `application` child package as the module contents.
+
+An `AcrossModule` descriptor is not required for this module, it is entirely package based.
+Many Across applications use several shared modules and have a limited set of application-specific code using those module features.
+The dynamic application module is the default spot to put all that application specific code.
+It does not allow (or requires) you to define explicit dependencies but it always bootstraps after all other modules in the application.
+
+=== Using the application module
+
+Let's finish this tutorial with a small example of using the application module.
+Update the `DemoApplication` to add our newly created modules:
+
+.src/main/java/com/example/demo/DemoApplication.java
+[source,java]
+----
+@AcrossApplication(
+        modules = {
+
+        }
+)
+public class DemoApplication
+{
+    @Bean
+    public ModuleOne moduleOne() {
+        return new ModuleOne();
+    }
+
+    @Bean
+    public ModuleTwo moduleTwo() {
+        return new ModuleTwo();
+    }
+
+    @Bean
+    public ModuleThree moduleThree() {
+        return new ModuleThree();
+    }
+
+    public static void main(String[] args) {
+        SpringApplication springApplication = new SpringApplication(DemoApplication.class);
+        springApplication.setDefaultProperties(Collections.singletonMap("spring.config.location", "${user.home}/dev-configs/demo-application.yml"));
+        springApplication.run(args);
+    }
+}
+----
+
+And add an application event listener to the `application` package:
+
+.src/main/java/com/example/demo/application/ApplicationComponent.java
+[source,java]
+----
+@Component
+@Slf4j
+public class ApplicationComponent
+{
+    public ApplicationComponent() {
+        LOG.info("Component created: {}", getClass());
+    }
+
+    @EventListener
+    public void receive(SomeEvent event) {
+        event.add(getClass().getSimpleName());
+    }
+}
+----
+
+Your project structure should look like:
+
+[source]
+----
+com.example.demo/
+  application/
+    ApplicationComponent
+  modules/
+    SomeEvent
+    one/
+      ModuleOne
+      InternalComponentOne
+      ExposedComponentOne
+    two/
+      ModuleTwo
+      InternalComponentTwo
+      ExposedComponentTwo
+    three/
+      ModuleThree.java
+      SupplierService.java
+  DemoApplication
+----
+
+Our application module now also handles `SomeEvent`, let's update the application integration test `ITDemoApplication` to test for that:
+
+.src/test/java/it/ITDemoApplication.java
+[source,java]
+----
+public class ITDemoApplication
+{
+    @Autowired
+    private MockMvc mockMvc;
+
+    @Autowired
+    private SupplierService supplierService;
+
+    @Test
+    public void bootstrappedOk() throws Exception {
+        // Test should really do something - but when it gets called, bootstrap has been successful
+        assertNotNull(mockMvc);
+    }
+
+    @Test
+    public void eventShouldBeHandledByAllModules() {
+        assertEquals(
+                Arrays.asList("SupplierService", "InternalComponentOne", "InternalComponentTwo", "ApplicationComponent"),
+                supplierService.getEventListeners()
+        );
+    }
+}
+----
+
+As `SupplierService` is an exposed component, we can auto-wire it directly in our Spring integration test class.
+
+Running the `eventShouldBeHandledByAllModules()` test should succeed.
+The test result illustrates that the `ApplicationComponent` gets created and the `@EventListener` method called.
+If you look at the console output, you can clearly see that the `ApplicationComponent` is part of the automatically defined `DemoApplicationModule`.
+
+== Wrapping it up
+
+And so we come to the end of this introduction about building modular applications with Spring Boot and Across.
+We've focused on some basic concepts where the modular approach differs from a regular Spring Boot application.
+
+Features like module dependencies, reliable ordering and event handling are the very basic building blocks you'll need.
+
+We barely scratched the surface and there's plenty more to come.
+In a next post we'll tackle:
+
+* name based resolving and transitive loading of modules
+* working with conditionals for modules and components inside modules
+* how modules can manage their own installation and run data or schema migrations
+* embedding resources like message codes or templates
+
+In the meantime you can find more information on all things Across on https://across.foreach.be[across.foreach.be].
+
+The full source code of this tutorial is available on: https://github.com/ForeachOS/blog-modular-monoliths-across

@@ -1,0 +1,194 @@
+= Working with events
+
+[abstract]
+--
+This section covers event handling in an Across application, it explains:
+
+* [*] How to publish and handle events
+* [*] How event handling order is determined by the module dependencies
+* [*] The difference between implicit and explicit ordering
+
+This how-to is part of the xref:modular-monoliths/index.adoc[Building a modular monolith] series.
+It continues directly from the previous how-to on xref:modular-monoliths/3-using-module-components.adoc[Using module components].
+--
+
+== Publishing and handling events
+
+Just like with distributed systems, using events for inter-module communication can be a very effective way to reduce coupling in your application.
+Working with events in an Across application is done with the exact same features as in a regular Spring application, but module ordering influences how events are handled.
+Let's have a look.
+
+Create a sample `SomeEvent` class which we will publish.
+In this case, put it in the `com.example.demo.modules` package to illustrate it is part of the code shared between all modules.
+
+.src/main/java/com/example/demo/modules/SomeEvent.java
+[source,java]
+----
+package com.example.demo.modules;
+
+import java.util.ArrayList;
+
+public class SomeEvent extends ArrayList<String>
+{
+}
+----
+
+Our event is nothing more than an `ArrayList` implementation to which every listener will add its own name.
+
+Update the `SupplierService` with a new method which publishes the event and returns the names of all listeners that handled it.
+At the same time, add an `@EventListener` method in the `SupplierService` which listens for the same event.
+
+.src/main/java/com/example/demo/modules/three/SupplierService.java
+[source,java]
+----
+@Service
+@RequiredArgsConstructor
+public class SupplierService
+{
+	private final ApplicationEventPublisher eventPublisher;
+
+	...
+
+	public Collection<String> getEventListeners() {
+		SomeEvent event = new SomeEvent();
+		eventPublisher.publishEvent( event );
+		return event;
+	}
+
+	@EventListener
+	public void receive( SomeEvent event ) {
+		event.add( getClass().getSimpleName() );
+	}
+}
+----
+
+Also add some event listeners to the internal components of both `ModuleOne` and `ModuleTwo`
+
+.src/main/java/com/example/demo/moduls/one/InternalComponentOne.java
+[source,java]
+----
+@Component
+@Slf4j
+public class InternalComponentOne
+{
+	...
+
+	@EventListener
+	public void receive( SomeEvent event ) {
+		event.add( getClass().getSimpleName() );
+	}
+}
+----
+
+.src/main/java/com/example/demo/moduls/two/InternalComponentTwo.java
+[source,java]
+----
+@Component
+@Slf4j
+public class InternalComponentTwo
+{
+	...
+
+	@EventListener
+	public void receive( SomeEvent event ) {
+		event.add( getClass().getSimpleName() );
+	}
+}
+----
+
+And finally write an integration test that bootstraps our modules and verifies the list of event listeners.
+
+.src/test/java/test/TestModuleBootstrapScenarios.java
+[source,java]
+----
+@Test
+public void eventIsHandledInModuleOrder() {
+    try (AcrossTestContext ctx = AcrossTestBuilders.standard( false )
+                                                   .modules( new ModuleThree(), new ModuleOne(), new ModuleTwo() )
+                                                   .build()) {
+        SupplierService supplierService = ctx.getBeanOfType( SupplierService.class );
+        assertEquals( Arrays.asList( "SupplierService", "InternalComponentOne", "InternalComponentTwo" ), supplierService.getEventListeners() );
+    }
+}
+----
+
+No matter how often you run it, this test should always succeed.
+Without explicit ordering on the `@EventListener` methods, the bootstrap order ensures that events are always handled in the same order.
+
+Here is a run-down of what happens exactly:
+
+. the modules are bootstrapped in the order `ModuleThree`, `ModuleOne`, `ModuleTwo`
+. `SomeEvent` is published by the `SupplierService` inside `ModuleThree`
+. `SomeEvent` is handled by `SupplierService.receive()`
+. `SomeEvent` is handled by `InternalComponentOne.receive()`
+. `SomeEvent` is handled by `InternalComponentTwo.receive()`
+
+Even though `SupplierService` publishes the event, it will always be handled in module order.
+This is might seem obvious with the above example, but let's shift the order around in our test:
+
+ .modules( new ModuleTwo(), new ModuleThree(), new ModuleOne() )
+
+If we simply re-run the test it now fails, as the order of handlers has changed.
+Let's go over it step-by-step:
+
+. the modules are now bootstrapped in the order `ModuleOne`, `ModuleTwo`, `ModuleThree`
+. `SomeEvent` is published by the `SupplierService` inside `ModuleThree`
+. `SomeEvent` is handled by `InternalComponentOne.receive()`
+. `SomeEvent` is handled by `InternalComponentTwo.receive()`
+. `SomeEvent` is handled by `SupplierService.receive()`
+
+Because `ModuleTwo` has a dependency on `ModuleOne`, the relative ordering of those two modules will always be the same.
+`ModuleThree` has no dependencies, and because the registration order of our configuration has changed, it is now bootstrapped as the last module.
+Even though the event is published by that module, it is last when it comes to handling that same event!
+
+Properly using events is a great way for building extensibility.
+The same event will always be handled by any module you depend on, before it is handed to you.
+Note also that any component can handle an event, event listeners do not need to be exposed.
+
+== Implicit and explicit ordering
+
+We've illustrated the impact of ordering on components and event handling.
+
+In a regular Spring application most components are considered not-ordered unless they are explicitly ordered.
+Beans will be returned in order if they implement `Ordered` or have the `@Order` annotation.
+If they have neither of these, the order in which they will be returned cannot reliably be determined.
+The same goes for `@EventListener` methods, unless explicitly ordered using `@Order`, the handling order is non-deterministic.
+
+In an Across based modular application, the order of a lot of things is implicit.
+Because module A depends on module B, it will be ordered after it, which means:
+
+* components from B will be created before the ones from A (B will bootstrap before A)
+* _unless otherwise specified_: components from B will be ordered before the ones from A in retrieval/auto-wiring scenarios
+* _unless otherwise specified_: events will be handled by event listeners from B before the ones from A, no matter who publishes the event
+
+Of course sometimes it is required to break out of the default behaviour, which is still possible (_unless otherwise specified_):
+
+* using `@OrderInModule` and equivalents you can order components inside a single module
+* using `@Order` you can influence the global ordering in your application
+
+To illustrate this, let's revisit the failing test from above, and update the `SupplierService`:
+
+.src/main/java/com/example/demo/modules/three/SupplierService.java
+[source,java]
+----
+@Service
+@RequiredArgsConstructor
+public class SupplierService
+{
+    ...
+
+	@EventListener
+	@Order(Ordered.HIGHEST_PRECEDENCE)
+	public void receive( SomeEvent event ) {
+		event.add( getClass().getSimpleName() );
+	}
+}
+----
+
+Re-run and you will see the test is green again.
+The `@Order(HIGHEST_PRECEDENCE)` breaks out of the default ordering and pushes that event listener to the very top of the handling queue.
+
+Going into the details of how the ordering works behind the scene would lead us too far, but suffice to say that reliable default ordering is a cornerstone of building modular monoliths with Spring Boot and Across.
+
+To continue this series, let's have a look at the xref:modular-monoliths/5-dynamic-application-module.adoc[Dynamic application module].
+
