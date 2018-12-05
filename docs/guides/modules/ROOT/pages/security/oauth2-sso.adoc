@@ -174,7 +174,6 @@ Because of a slight difference between @ComponentScan and @Import, we'll have to
 
 .Configuration class that imports the aformentioned WebSecurityConfigurerAdapter.
 ```
-@Configuration
 @Import(OAuth2AutoConfiguration.class)
 @ComponentScan(basePackageClasses = WebSecurityConfiguration.class)
 @ModuleConfiguration(SpringSecurityModule.NAME)
