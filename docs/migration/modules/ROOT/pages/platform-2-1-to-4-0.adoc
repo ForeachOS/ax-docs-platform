@@ -1,0 +1,22 @@
+= Migration guide: platform 2.1.x to 4.0.x
+
+[abstract]
+--
+Platform 4 binds to Across 5.0.0, with Spring Boot 2.1.
+4.0.x may supersede Platform 3.0.x upon final release.
+--
+
+== State of the migration guide
+
+Current Platform development version is `4.0.0-SNAPSHOT`, slated to become `4.0.0.M1`.
+
+== Migration steps
+
+First follow all steps as described in xref:platform-2-1-to-3-0.adoc[Migration guide: platform 2.1.x to 3.0.x].
+
+== Breaking changes
+
+=== Across core
+
+* `AcrossModuleSettings` and related components have been removed.
+Developers are encouraged to use `@ConfigurationProperties` support as embedded in Spring Boot.
