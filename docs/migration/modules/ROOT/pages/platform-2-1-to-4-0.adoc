@@ -16,7 +16,66 @@ First follow all steps as described in xref:platform-2-1-to-3-0.adoc[Migration g
 
 == Breaking changes
 
-=== Across core
+=== Removal of deprecated elements
 
-* `AcrossModuleSettings` and related components have been removed.
-Developers are encouraged to use `@ConfigurationProperties` support as embedded in Spring Boot.
+Several components or methods that were deprecated in previous versions have now been removed.
+It is best if applications or modules remove the use of deprecated components, *before* attempting an upgrade.
+
+The following is the list of most notable deprecated elements removed:
+
+.Across core
+* `@AcrossDepends`
+** Using `@AcrossDepends` for conditional component creation is no longer supported.
+The presence of this annotation will no longer have any effect on component creation.
+
+* `AcrossModuleSettings` and related components
+** Developers are encouraged to use `@ConfigurationProperties` support as embedded in Spring Boot.
+
+* `@AcrossEventHandler` and related components (deprecated since xref:across:releases:core-artifacts/releases-3.x.adoc#3-0-0[3.0.0])
+** `ParameterizedAcrossEvent`: implement as `ResolvableTypeProvider` instead
+** `@Event`: replace with `@EventListener`
+** `@EventName`: replace with `@EventListener(condition="#event.eventName == 'my name'")`
+** `AcrossEventPublisher`: replace with `ApplicationEventPublisher`
+*** the `publishAsync()` method has been removed entirely
+
+* `StringToDateConverter`
+** replace with `StringToDateTimeConverter`
+
+* `@AcrossCondition`
+** Use the regular `@ConditionalOnExpression` instead.
+Any previous condition using `currentModule` can use `@'across.currentModule'` instead.
+
+.Across web
+* `AcrossWebDynamicServletConfigurer`
+** Use a `ServletContextInitializer` instead.
+For most cases this would be a `FilterRegistrationBean`.
+
+* `Table` class and related components have been removed
+** Rarely used, only known use was DebugWebModule.
+
+* `PathBasedMenuBuilder.move()` and `.undoMove()` methods
+** Use `changeItemPath` instead.
+Implementations should be reviewed, as the behaviour of `changeItemPath` is slightly different from the previous `move()`.
+
+* `AcrossWebModule` methods for configuring views have been removed
+** Custom views configuration can be done by setting property values.
+
+.Across test
+* `@AcrossTestWebConfiguration`, `AcrossTestContextConfiguration`, `AcrossTestWebContextConfiguration`
+** Use either `AcrossTestBuilders` or the separate configuration classes.
+
+== New Across application runner
+
+Across now has an `AcrossApplicationRunner` which can be used instead of a regular `SpringApplication`.
+It uses a custom `BeanFactory` for the root `ApplicationContext`, directly supporting exposed beans.
+This removes some overhead and can have a minor performance gain.
+
+The custom `AcrossApplicationRunner` is a drop-in replacement for `SpringApplication`.
+An equivalent `AcrossApplicationRunnerBuilder` and `AcrossApplicationServletInitializer` is also available.
+
+When upgrading, the following can be done:
+
+* `SpringApplication.run()` can be replaced with `AcrossApplicationRunner.run()`
+* `new SpringApplication()` can be replaced with `new AcrossApplicationRunner()`
+* `extends SpringBootServletInitializer` can be replaced with `extends AcrossApplicationServletInitializer`
+* `SpringApplicationBuilder` can be replaced with `AcrossApplicationRunnerBuilder`

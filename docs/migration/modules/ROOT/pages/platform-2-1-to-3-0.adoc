@@ -11,7 +11,7 @@ It mainly focuses on upgrade related changes: usually breaking changes or new fe
 
 == State of the migration guide
 
-Current Platform development version is `3.0.0-SNAPSHOT`, slated to become `3.0.0.M1`.
+Current Platform development version is `3.0.0-SNAPSHOT`, slated to become `3.0.0.M2`.
 
 == General breaking changes
 
@@ -44,6 +44,11 @@ The following Across module properties have been modified:
 |`across.web`
 
 |===
+
+=== Dependencies
+
+* artifact `org.hibernate:hibernate-validator` has been moved to `org.hibernate.validator:hibernate-validator`
+** you should revise your application dependency tree to avoid pulling it in twice, use `org.hibernate.validator` to ensure you have the latest version
 
 === Spring libraries
 
@@ -89,7 +94,7 @@ Most security configurations that used Spring Boot 1.5 defaults (for example for
 * Spring Boot no longer applies custom security to any endpoint, meaning that you will now have to manually apply the security you want by providing `WebSecurityConfigurerAdapter`
 * if there is no `WebSecurityConfigurerAdapter` the default Spring security adapter will secure everything
 ** if you have SpringSecurityModule but do not want to have security applied, you should manually add a configuration that ignores everything
-* Password encoding features have been modified, if you want to specify in memory users with a default password, you probably have to migrate your old code and prefix the password with `{noop}` to avoid a no `PasswordEncoder` exception
+* Password encoding features have been modified, if you want to specify in memory users with a default password, you probably have to migrate your old code and prefix the password with `\{noop}` to avoid a no `PasswordEncoder` exception
 
 See https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-Security-2.0
 
