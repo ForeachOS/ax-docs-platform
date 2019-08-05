@@ -1,5 +1,5 @@
 name: guides
 title: Application Guides
-version: 3.0.0-dev
+version: master
 nav:
 - modules/ROOT/nav.adoc

@@ -327,5 +327,5 @@ The reliable implicit ordering resulting from it is one of the foremost features
 Let's see how that ordering propagates throughout the application.
 Make sure you have uncommented the `@AcrossDepends` on `ModuleTwo` again before continuing.
 
-Continue to xref:modular-monoliths/2-module-dependencies.adoc[Using module components].
+Continue to xref:modular-monoliths/3-using-module-components.adoc[Using module components].
 
