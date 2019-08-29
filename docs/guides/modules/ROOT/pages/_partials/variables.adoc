@@ -1,1 +1,1 @@
-:ax-initializr-url: http://start-across.foreach.be/
+:ax-initializr-url: https://start.across.dev/

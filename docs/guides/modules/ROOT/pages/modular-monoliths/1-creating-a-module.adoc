@@ -15,7 +15,7 @@ This how-to is part of the xref:modular-monoliths/index.adoc[Building a modular 
 == Creating our application
 Let's start by creating our Spring Boot application.
 
-Go to http://start-across.foreach.be and ensure that the option `Blank Across application without any modules` is selected.
+Go to https://start.across.dev and ensure that the option `Blank Across application without any modules` is selected.
 Click on `Generate project`, download, unzip to a folder and import the project via the `pom.xml` in your favorite IDE.
 
 When unzipped, you should see the following folder structure:

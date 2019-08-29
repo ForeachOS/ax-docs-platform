@@ -30,7 +30,7 @@ So let's get started.
 == Creating our application
 Let's start by creating our Spring Boot application.
 
-Go to http://start-across.foreach.be and ensure that the option `Blank Across application without any modules` is selected.
+Go to https://start.across.dev and ensure that the option `Blank Across application without any modules` is selected.
 Click on `Generate project`, download, unzip to a folder and import the project via the `pom.xml` in your favorite IDE.
 
 When unzipped, you should see the following folder structure:
@@ -1261,6 +1261,6 @@ In a next post we'll tackle:
 * how modules can manage their own installation and run data or schema migrations
 * embedding resources like message codes or templates
 
-In the meantime you can find more information on all things Across on https://across.foreach.be[across.foreach.be].
+In the meantime you can find more information on all things Across on https://across.dev[across.dev].
 
 The full source code of this tutorial is available on: https://github.com/ForeachOS/blog-modular-monoliths-across
