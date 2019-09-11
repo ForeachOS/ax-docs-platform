@@ -1,0 +1,16 @@
+
+== New Across application runner
+
+Across now has an `AcrossApplicationRunner` which can be used instead of a regular `SpringApplication`.
+It uses a custom `BeanFactory` for the root `ApplicationContext`, directly supporting exposed beans.
+This removes some overhead and can have a minor performance gain.
+
+The custom `AcrossApplicationRunner` is a drop-in replacement for `SpringApplication`.
+An equivalent `AcrossApplicationRunnerBuilder` and `AcrossApplicationServletInitializer` is also available.
+
+When upgrading, the following can be done:
+
+* `SpringApplication.run()` can be replaced with `AcrossApplicationRunner.run()`
+* `new SpringApplication()` can be replaced with `new AcrossApplicationRunner()`
+* `extends SpringBootServletInitializer` can be replaced with `extends AcrossApplicationServletInitializer`
+* `SpringApplicationBuilder` can be replaced with `AcrossApplicationRunnerBuilder`

@@ -1,0 +1,65 @@
+
+== Auto-configuration support
+
+* `across.configuration` has been dropped in favour of `across-configuration.yml` which allows more advanced configuration
+
+
+=== Removal of deprecated elements
+
+Several components or methods that were deprecated in previous versions have now been removed.
+It is best if applications or modules remove the use of deprecated components, *before* attempting an upgrade.
+
+The following is the list of most notable deprecated elements removed:
+
+.Across core
+* `@AcrossDepends`
+** Using `@AcrossDepends` for conditional component creation is no longer supported.
+The presence of this annotation will no longer have any effect on component creation.
+
+* `AcrossModuleSettings` and related components
+** Developers are encouraged to use `@ConfigurationProperties` support as embedded in Spring Boot.
+
+* `@AcrossEventHandler` and related components (deprecated since xref:across:releases:core-artifacts/releases-3.x.adoc#3-0-0[3.0.0])
+** `ParameterizedAcrossEvent`: implement as `ResolvableTypeProvider` instead
+** `@Event`: replace with `@EventListener`
+** `@EventName`: replace with `@EventListener(condition="#event.eventName == 'my name'")`
+** `AcrossEventPublisher`: replace with `ApplicationEventPublisher`
+*** the `publishAsync()` method has been removed entirely
+
+* `StringToDateConverter`
+** replace with `StringToDateTimeConverter`
+
+* `@AcrossCondition`
+** Use the regular `@ConditionalOnExpression` instead.
+Any previous condition using `currentModule` can use `@'across.currentModule'` instead.
+
+.Across web
+* `AcrossWebDynamicServletConfigurer`
+** Use a `ServletContextInitializer` instead.
+For most cases this would be a `FilterRegistrationBean`.
+
+* `Table` class and related components have been removed
+** Rarely used, only known use was DebugWebModule.
+
+* `PathBasedMenuBuilder.move()` and `.undoMove()` methods
+** Use `changeItemPath` instead.
+Implementations should be reviewed, as the behaviour of `changeItemPath` is slightly different from the previous `move()`.
+
+* `AcrossWebModule` methods for configuring views have been removed
+** Custom views configuration can be done by setting property values.
+
+.Across test
+* `@AcrossTestWebConfiguration`, `AcrossTestContextConfiguration`, `AcrossTestWebContextConfiguration`
+** Use either `AcrossTestBuilders` or the separate configuration classes.
+
+The following Across module properties have been modified:
+
+.Property prefix modifications
+|===
+|Module |Old prefix |New prefix
+
+|Across Web
+|`acrossWebModule`
+|`across.web`
+
+|===
