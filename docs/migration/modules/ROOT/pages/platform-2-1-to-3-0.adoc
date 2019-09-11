@@ -1,1 +1,0 @@
-= Migration guide: platform 2.1.x to 3.0.x
