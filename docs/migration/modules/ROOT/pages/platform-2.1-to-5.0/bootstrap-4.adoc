@@ -1,17 +1,42 @@
-refactored styling of various elements
+= Bootstrap 4 related changes
+
+Upgraded from Bootstrap 3 to Bootstrap 4.
+To migrate custom styling, please refer to the Bootstrap 4 documentation and migration guide.
+In the following sections the most radical changes are listed.
+
+== General
+
+* Style changes
+** `.hidden` has been replaced by `.d-none`
+** `.pull-right` has become `.float-right`
+** `.btn-default` has become `.btn-secondary`
+
+* Grid system has moved to flexbox
+* minimized use of custom css by using bootstrap utility classes, such as margins and layouting
+
+* checkboxes have been upgraded to their bootstrap 4 variant
+** unwrapped checkboxes are still rendered as a browser default
+
+* added strongly typed helper classes for boostrap 4 types
+* updated various libraries amongst which some have breaking changes
+** Eonasdan Datepicker to Tempus Dominus
+*** requires a control name to be registered on the element.
+If a control name is not present, the calendar may not work correctly
+*** the change event has changed from `dp.change` to `change.datetimepicker`
+*** registered attribute has changed from `DateTimePicker` to `datetimepicker`
+** Autonumeric
+*** is now a standalone library instead of a jquery plugin, accessible via a `data-autoNumeric` attribute on the corresponding element
+
+== Panels
+
+* migrated from panels to cards
+
+== Icons
+
+* GlyphIcons no longer exist. migrated entirely to FontAwesome5 icons
+
+== Navbar
 
 * navbar-header
 ** use Bootstrap4 toggler
 ** added default utility classes (navbar-dark, bg-dark )
-* modified use of custom css for margin and padding primarily to mr/mx...,px... utility classes
-* modified column layout breakpoints
-* login page takes full width/height
-* unwrapped checkboxes are rendered as a browser default. wrapped always render their custom variant
-* updated libraries to their bootstrap 4 variant: bootstrap-select, Eonasdan Datepicker to Tempus Dominus
-* hidden has become d-none
-* pull-right has become float-right
-* btn-default has become btn-secondary
-* migrated from panels to cards
-* GlyphIcons no longer exist. migrated entirely to FontAwesome5 icons
-* added support for Bootstrap 4 Switches (ToggleViewElement)
-* added strongly typed helper classes for boostrap 4 types
