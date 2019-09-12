@@ -1,0 +1,17 @@
+refactored styling of various elements
+
+* navbar-header
+** use Bootstrap4 toggler
+** added default utility classes (navbar-dark, bg-dark )
+* modified use of custom css for margin and padding primarily to mr/mx...,px... utility classes
+* modified column layout breakpoints
+* login page takes full width/height
+* unwrapped checkboxes are rendered as a browser default. wrapped always render their custom variant
+* updated libraries to their bootstrap 4 variant: bootstrap-select, Eonasdan Datepicker to Tempus Dominus
+* hidden has become d-none
+* pull-right has become float-right
+* btn-default has become btn-secondary
+* migrated from panels to cards
+* GlyphIcons no longer exist. migrated entirely to FontAwesome5 icons
+* added support for Bootstrap 4 Switches (ToggleViewElement)
+* added strongly typed helper classes for boostrap 4 types
