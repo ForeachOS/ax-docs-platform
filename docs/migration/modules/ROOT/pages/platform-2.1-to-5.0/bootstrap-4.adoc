@@ -13,6 +13,7 @@ In the following sections the most radical changes are listed.
 ** AdminWeb header navbar has additional utility classes for look and feel (`.navbar-dark .bg-dark`)
 
 * Grid system has moved to flexbox
+** EntityModule filter forms have been restyled using flexbox, opting for a horizontal layout
 * minimized use of custom css by using bootstrap utility classes, such as margins and layouting
 
 * checkboxes and radio buttons have been upgraded the https://getbootstrap.com/docs/4.3/components/forms/#checkboxes-and-radios-1[custom variant]
