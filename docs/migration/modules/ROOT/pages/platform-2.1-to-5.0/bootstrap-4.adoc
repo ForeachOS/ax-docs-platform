@@ -1,7 +1,7 @@
 = Bootstrap 4 related changes
 
 Upgraded from Bootstrap 3 to Bootstrap 4.
-To migrate custom styling, please refer to the Bootstrap 4 documentation and migration guide.
+To migrate custom styling, please refer to the https://getbootstrap.com/docs/4.3/getting-started/introduction/[Bootstrap 4 documentation] and https://getbootstrap.com/docs/4.3/migration/[migration guide].
 In the following sections the most radical changes are listed.
 
 == General
@@ -10,33 +10,31 @@ In the following sections the most radical changes are listed.
 ** `.hidden` has been replaced by `.d-none`
 ** `.pull-right` has become `.float-right`
 ** `.btn-default` has become `.btn-secondary`
+** AdminWeb header navbar has additional utility classes for look and feel (`.navbar-dark .bg-dark`)
 
 * Grid system has moved to flexbox
 * minimized use of custom css by using bootstrap utility classes, such as margins and layouting
 
-* checkboxes have been upgraded to their bootstrap 4 variant
-** unwrapped checkboxes are still rendered as a browser default
+* checkboxes and radio buttons have been upgraded the https://getbootstrap.com/docs/4.3/components/forms/#checkboxes-and-radios-1[custom variant]
+** unwrapped checkboxes are still rendered using the browser default
 
 * added strongly typed helper classes for boostrap 4 types
 * updated various libraries amongst which some have breaking changes
-** Eonasdan Datepicker to Tempus Dominus
+** Eonasdan Datepicker to https://tempusdominus.github.io/bootstrap-4/[Tempus Dominus]
 *** requires a control name to be registered on the element.
 If a control name is not present, the calendar may not work correctly
 *** the change event has changed from `dp.change` to `change.datetimepicker`
 *** registered attribute has changed from `DateTimePicker` to `datetimepicker`
-** Autonumeric
-*** is now a standalone library instead of a jquery plugin, accessible via a `data-autoNumeric` attribute on the corresponding element
+** AutoNumeric
+*** is now a http://autonumeric.org/[standalone library] instead of a jquery plugin, accessible via a `data-autoNumeric` attribute on the corresponding element
 
 == Panels
 
-* migrated from panels to cards
+* panels have been replaced by card elements
+** navigation sidebar, wrapped (sortable)tables, ViewElementFieldset presets are now using cards
 
 == Icons
 
-* GlyphIcons no longer exist. migrated entirely to FontAwesome5 icons
+* GlyphIcon icon font has been removed in Bootstrap 4, all icons have been migrated to FontAwesome5 icons.
+** Modules define their icons in an IconSet, through which they can easily be customized
 
-== Navbar
-
-* navbar-header
-** use Bootstrap4 toggler
-** added default utility classes (navbar-dark, bg-dark )
