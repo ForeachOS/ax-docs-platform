@@ -3,6 +3,7 @@
 We upgraded from bootstrap 3 to bootstrap 4 in BootstrapUiModule.
 
 The following classes where removed in favor of using the new bootstrap 4 factory `BootstrapViewElements`.
+
 * BootstrapUiFactory & BootstrapUiFactoryImpl
 * BootstrapUiComponentFactory & BootstrapUiComponentFactoryImpl
 * BootstrapUiBuildersBroken
@@ -11,5 +12,6 @@ The following classes where removed in favor of using the new bootstrap 4 factor
 The `BootstrapViewElements` class has become the main entry point for creating `ViewElement` and `ViewElementBuilders`.
 
 ViewElements can be created using: `BootstrapViewElements.bootstrap`
+
 ViewElementBuilders can be created using: `BootstrapViewElements.bootstrap.builders`
 
