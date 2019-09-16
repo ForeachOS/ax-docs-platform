@@ -1,6 +1,29 @@
 == ViewElements
 
-todo: viewelement refactoring
+== Html 5 nodes
+The `HtmlViewElements` class is introduced to create `ViewElement` and `ViewElementBuilders` for HTML5 nodes.
 
-* HtmlViewElementBuilder & HtmlViewElements
-* Introduction of `ViewElement.`WitherSetter` - `ViewElement.`WitherRemover` - `ViewElement.`WitherGetter`
+.An example of how to create a paragraph
+```java
+NodeViewElement paragraph = HtmlViewElements.html.p();
+```
+
+.An example of how to create a paragraph builder
+```java
+NodeViewElementBuilder paragraph = HtmlViewElements.html.builders.p();
+```
+
+== Customizing ViewElement and ViewElementBuilders
+All methods for creating a `ViewElement` or `ViewElementBuilder` using `HtmlViewElements` can take in a `ViewElement.WitherSetter`.
+A `WitherSetter` can be used to modify the viewElement by setting or adding values.
+
+These `ViewElement` modifiers come in 3 forms:
+
+* `ViewElement.WitherSetter`
+* `ViewElement.WitherRemover`
+*  `ViewElement.WitherGetter`
+
+.Example of using a wither setter
+```java
+NodeViewElement divWithBoldClass = HtmlViewElements.html.div( HtmlViewElement.Functions.css( "bold" )  );
+```
