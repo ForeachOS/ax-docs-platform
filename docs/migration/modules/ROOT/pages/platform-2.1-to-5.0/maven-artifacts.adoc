@@ -1,69 +1,225 @@
-= Across platform BOM
-Across platform BOM does not exist anymore and is replaced by the following three parent poms:
+= Across BOM/POM changes
 
-* Across platform dependencies
-* Across application parent
-* Across module parent
+Across `platform-bom` and `standard-module-bom` do not exist anymore.
+The reason for this is a change in Spring, where the Spring platform bom has been replaced by `spring-boot-dependencies`.
+Due to this change, we have create a new POM structure, to also take advantage of the inheritance structure of parent POMs.
+This allows you to overwrite `<properties>` and re-use predefined `<plugins>` and `<dependencyManagement>` sections
+, managed by the Spring POMs or Across POMs.
 
-== Maven properties
-We introduced a couple of maven properties to simplify the pom configuration.
+`platform-bom` and `standard-module-bom have been replaced by the following two parent poms:
+
+* Across Application Parent dependencies `across-application-parent` - replaces `platfom-bom`.
+* Across Module Parent `across-module-parent` - replaces `standard-module-bom`.
+
+Some other POMs exist, but shouldn't be used directly, unless you know what you are doing.
+
+* Across Core dependencies `across-core-dependencies` - much like `spring-boot-dependencies`.
+It contains additional dependency versions used by any of the child POMs.
+* Across Platform Dependencies `across-platform-dependencies`, holds the versions of the Across Standard modules.
+It is used by `across-module-parent` and `across-application-parent`.
+* Across Standard Module POM, used by Across Standard Modules only.
+
+== Migrating your application from `platfom-bom` to `across-application-parent`
+
+Migrating an Across application from `platform-bom` includes several tasks.
+
+=== Replacing platform-bom
+
+First thing to do is replace the BOM `import` with a `<parent>`.
+
+You need to remove:
+
+[source,xml,indent=0]
+[subs="verbatim,quotes,attributes"]
+----
+<dependencyManagement>
+    <dependencies>
+        <dependency>
+            <groupId>com.foreach.across</groupId>
+            <artifactId>platform-bom</artifactId>
+            <version>2.1.5.RELEASE</version>
+            <type>pom</type>
+            <scope>import</scope>
+        </dependency>
+    </dependencies>
+</dependencyManagement>
+----
+
+Add on top of your pom.xml:
+
+[source,xml,indent=0]
+[subs="verbatim,quotes,attributes"]
+----
+<parent>
+    <groupId>com.foreach.across</groupId>
+    <artifactId>across-application-parent</artifactId>
+    <version>5.0.0.RELEASE</version>
+    <relativePath/>
+</parent>
+----
+
+If you have a multi-module Maven project, you should add it to the root Maven project.
+
+You will now inherit all `properties`, `plugins`, `pluginManagement`, `dependencyManagement`, `profiles`, from `across-application-parent`
+and all it's parents.
+
+=== Cleanup versions in your dependencies
+
+Next, remove go over all `<version>` tags of your `<dependencies>` if they are managed by `across-application-parent`, `across-core-dependencies`,
+`spring-boot-dependencies`, you should remove them - unless you require a specific version.
+
+I recommend removing all `<version>` tags and see which imports fail. Then re-add these in the `<dependencyManagement>` section in your root POM.
+
+=== Cleanup plugin configurations
+Next, remove most of your `<build><plugins>` most of if is managed by the parent POMs. Do not remove `<build><finalName>...</finalName></build>` if you use it.
+
+You can probably remove:
+
+* maven-release-plugin
+* maven-compiler-plugin
+* maven-jar-plugin
+
+You may need to keep the `spring-boot-maven-plugin`, but you can trim it down to:
+
+[source,xml,indent=0]
+[subs="verbatim,quotes,attributes"]
+----
+<plugin>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-maven-plugin</artifactId>
+</plugin>
+----
+
+The `version`, `executions` and `configuration` will be handled by the parent POMs for the `spring-boot-maven-plugin`.
+
+If you are using Sonar and Jacoco, you should keep the `jacoco-maven-plugin` and `maven-failsafe-plugin` configuration, but you can remove the `version`.
+
+=== Resource filtering changes
+
+If you use a resource filtering configuration like the following:
+
+[source,xml,indent=0]
+[subs="verbatim,quotes,attributes"]
+----
+<resources>
+    <resource>
+        <directory>src/main/resources</directory>
+        <filtering>false</filtering>
+        <excludes>
+            <exclude>build.properties</exclude>
+        </excludes>
+    </resource>
+    <resource>
+        <directory>src/main/resources</directory>
+        <includes>
+            <include>build.properties</include>
+        </includes>
+        <targetPath>.</targetPath>
+        <filtering>true</filtering>
+    </resource>
+</resources>
+----
+
+You can remove the whole block, resource filtering will be handled by `spring-boot-starter-parent`, which is the parent of `across-application-parent`.
+
+If you use the `build.properties` you need to migrate these values into `application.yml`.
+
+[source,yml,indent=0]
+[subs="verbatim,quotes,attributes"]
+----
+# Processed by maven - leave as is
+build.number: @build.revision@
+applicationInfo.buildId: @pom.version@-@build.revision@
+applicationInfo.buildDate: @timestamp@
+----
+
+Note that variables which need to be replaced by resource filtering are delimited by `@property@` instead of `${property}`.
+This is a Spring Boot change to avoid clashes with SPeL.
+
+You can now remove your `build.properties` file and the `@PropertySource` for this file if you have any.
+
+== Migrating from `standard-module-bom` to `across-module-parent`
+
+If you are using a `standard-module-bom` in a third party module, you can use the following parent POM:
+
+[source,xml,indent=0]
+[subs="verbatim,quotes,attributes"]
+----
+<parent>
+    <groupId>com.foreach.across</groupId>
+    <artifactId>across-module-parent</artifactId>
+    <version>5.0.0-TEST-SNAPSHOT</version>
+</parent>
+----
+
+`across-module-parent` does not contain any default `plugins`.
+You can however reuse the `version` of the `across-core-dependencies` and `spring-boot-dependencies` so you should be able to cleanup most of the `<version>` tags.
+
+== Migrating from `standard-module-bom` to `across-standard-module-parent`
+
+`across-standard-module-parent` is *not* supported for third party modules. It is not recommended for you to use it.
+Use `across-module-parent` instead.
+
+If you are migrating an Across Standard Module, do the following:
+
+* Migrate any http links to https
+* Migrate across.foreach.be domains to across.dev
+* Switch to Maven CI friendly properties (see below)
+* Remove the majority of <plugins> and their versions
+* Add the properties `<maven.javadoc.skip>false</maven.javadoc.skip>` and `<maven.deploy.skip>false</maven.deploy.skip>` to the module POM
+* Add the maven-flatten-plugin to the module POM
+
+[source,xml,indent=0]
+[subs="verbatim,quotes,attributes"]
+----
+<build>
+    <plugins>
+        <plugin>
+            <!-- This defines how a specific module will be flattened -->
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>flatten-maven-plugin</artifactId>
+            <executions>
+                <execution>
+                    <id>flatten</id>
+                    <phase>process-resources</phase>
+                    <goals>
+                        <goal>flatten</goal>
+                    </goals>
+                </execution>
+                <execution>
+                    <id>flatten.clean</id>
+                    <phase>clean</phase>
+                    <goals>
+                        <goal>clean</goal>
+                    </goals>
+                </execution>
+            </executions>
+        </plugin>
+    </plugins>
+</build>
+----
+
+* Remove `<scm><connection>` and `<scm><developerConnection>` tags
+* Change the site.xml assembly location to `<directory>target/site</directory>` (it is now relative to the module project)
+* Change the `repository` id to `across`
+
+[source,xml,indent=0]
+[subs="verbatim,quotes,attributes"]
+----
+<repositories>
+    <repository>
+        <id>across</id>
+        <name>Across Repository</name>
+        <url>https://repository.foreach.be/nexus/repository/public/</url>
+    </repository>
+</repositories>
+----
+
+== Maven CI friendly properties
+
+We also introduced https://maven.apache.org/maven-ci-friendly.html[Maven CI friendly properties] in all our POM files.
 The following properties where introduced:
 
 * `revision`: 5.0.0.RELEASE
 * `maven.deploy.skip`: default value is false
 
-== Across platform dependencies
-The across parent dependency contains all dependency versions of across standard modules that work together for a specific version of across.
-This should never be used directly in your own application or module, you should use the more specific application and module parents.
-
-[source,xml,indent=0]
-[subs="verbatim,quotes,attributes"]
-----
-<dependencyManagement>
-    <dependencies>
-        <dependency>
-            <groupId>com.foreach.across</groupId>
-            <artifactId>across-application-parent</artifactId>
-            <version>${revision}</version>
-            <packaging>pom</packaging>
-        </dependency>
-    </dependencies>
-</dependencyManagement>
-----
-
-
-== Across application parent
-A parent that needs to be used when creating a custom across application.
-
-[source,xml,indent=0]
-[subs="verbatim,quotes,attributes"]
-----
-<dependencyManagement>
-    <dependencies>
-        <dependency>
-            <groupId>com.foreach.across</groupId>
-            <artifactId>across-application-parent</artifactId>
-            <version>${revision}</version>
-            <packaging>pom</packaging>
-        </dependency>
-    </dependencies>
-</dependencyManagement>
-----
-
-== Across module parent
-A parent pom that will used for building across modules.
-
-[source,xml,indent=0]
-[subs="verbatim,quotes,attributes"]
-----
-<dependencyManagement>
-    <dependencies>
-        <dependency>
-            <groupId>com.foreach.across</groupId>
-	        <artifactId>across-module-parent</artifactId>
-            <version>${revision}</version>
-            <packaging>pom</packaging>
-        </dependency>
-    </dependencies>
-</dependencyManagement>
-----
