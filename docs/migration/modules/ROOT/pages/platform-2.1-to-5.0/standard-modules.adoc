@@ -11,12 +11,16 @@ In general most modules have breaking changes regarding Spring Data repositories
 
 Most security configurations that used Spring Boot 1.5 defaults (for example for Actuator stuff) will need to be reviewed.
 
-* Spring Boot no longer applies custom security to any endpoint, meaning that you will now have to manually apply the security you want by providing `WebSecurityConfigurerAdapter`
-* if there is no `WebSecurityConfigurerAdapter` the default Spring security adapter will secure everything
+* `SpringSecurityWebConfigurer` and `SpringSecurityWebConfigurerAdapter` have been replaced by a single `AcrossWebSecurityConfigurer` interface
+** modules can still provide either `AcrossWebSecurityConfigurer` or directly `WebSecurityConfigurerAdapter`, with the former being the preferred option for simple security configurations
+* Spring Boot no longer applies custom security to any endpoint, meaning that you will now have to manually apply the security you want by providing your own configurations
+* if there is no `WebSecurityConfigurerAdapter` (or `AcrossWebSecurityConfigurer``  the default Spring security adapter will secure everything
 ** if you have SpringSecurityModule but do not want to have security applied, you should manually add a configuration that ignores everything
 * Password encoding features have been modified, if you want to specify in memory users with a default password, you probably have to migrate your old code and prefix the password with `\{noop}` to avoid a no `PasswordEncoder` exception
 
 See https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-Security-2.0
+
+NOTE: DebugWebModule has a new controller available under _Across > Security > Security filters_ which lists the registered security filter chains.
 
 === EntityModule
 
