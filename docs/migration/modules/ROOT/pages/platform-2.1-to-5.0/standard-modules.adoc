@@ -24,6 +24,9 @@ Mostly Spring Data related changes.
 In previous version a `Sort` could be `null` whereas now a `Sort.unsorted()` is used in Spring Data.
 According changes in EntityModule have been done, passing `null` as a `Sort` should be avoided.
 
+`NotBlank`, `NotEmpty` and `Email` validation annotations have moved from the `org.hibernate.validator.constraints` package to `javax.validation.constraints` package.
+
+
 === SpringMobileModule
 
 Device specific Thymeleaf view resolving only works with the `.html` extension out of the box.
