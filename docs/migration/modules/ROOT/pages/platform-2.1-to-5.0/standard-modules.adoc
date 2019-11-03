@@ -1,7 +1,22 @@
-
 == Modules
 
 In general most modules have breaking changes regarding Spring Data repositories, where single instance queries will now always return `Optional`.
+
+=== Extension modules
+
+Some modules are now considered "extension" modules and no longer start their own `ApplicationContext`.
+Instead they only extend the configuration of other modules.
+
+This reduces some general overhead but will break existing code depending on these modules having been fully bootstrapped.
+
+The following modules no longer start their own module `ApplicationContext`:
+
+* xref:application-info-module::index.adoc[ApplicationInfoModule]
+** extends AcrossContextInfrastructureModule instead
+* SpringSecurityInfrastructureModule
+** this is a helper module added automatically by xref:spring-security-module::index.adoc[SpringSecurityModule] - it now extends AcrossContextInfrastructureModule
+* xref:bootstrap-ui-module::index.adoc[BootstrapUiModule]
+** extends AcrossWebModule instead
 
 === AcrossHibernateModule
 
