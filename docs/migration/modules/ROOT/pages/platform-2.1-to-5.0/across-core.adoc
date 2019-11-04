@@ -1,3 +1,5 @@
+= Across core changes
+
 == AcrossContext
 
 A new `AcrossContextInfrastructureModule` is now added to every AcrossContext as the very first module.
@@ -67,7 +69,7 @@ The following Across module properties have been modified:
 
 |===
 
-== Extension modules and @ModuleConfiguration changes
+== Extension modules
 
 The ability to extend existing module configuration has been expanded.
 These features are available on `@ModuleConfiguration` or through manipulating the `ModuleBootstrapConfig` through the lifecycle events or `prepareForBootstrap()`.

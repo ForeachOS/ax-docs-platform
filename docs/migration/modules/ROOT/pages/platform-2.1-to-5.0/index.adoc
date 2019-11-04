@@ -2,7 +2,7 @@
 
 [abstract]
 --
-Platform 5.0.0 binds to Across 5.0.0, which is built on top of Spring Boot 2.0.x and Spring Framework 5.0.x.
+Platform 5.0.0 binds to Across 5.0.0, which is built on top of Spring Boot 2.1.x and Spring Framework 5.1.x.
 This is a major upgrade with *a lot of breaking changes*, mostly due to changes inside Spring dependencies.
 
 NOTE: This guide is not a full overview of all new features and changes in Across or any of its modules.
@@ -11,22 +11,7 @@ It mainly focuses on upgrade related changes: usually breaking changes or new fe
 
 == State of the migration guide
 
-Current Platform development version is `5.0.0-SNAPSHOT`.
-
-[abstract]
---
-Platform 5 binds to Across 5.0.0, with Spring Boot 2.1.
---
-
-== State of the migration guide
-
-Current Platform development version is `5.0.0-SNAPSHOT`.
-
-== Migration steps
-
-First follow all steps as described in xref:platform-2-1-to-5-0.adoc[Migration guide: platform 2.1.x to 3.0.x].
-
-== Breaking changes
+Current Platform development version is `5.0.0-SNAPSHOT`, upgrading to Spring Boot 2.1.
 
 
 
