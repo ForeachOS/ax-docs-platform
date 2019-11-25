@@ -3,6 +3,7 @@
 ** xref:platform-2.1-to-5.0/application-runner.adoc[Across application runner]
 ** xref:platform-2.1-to-5.0/spring-boot-upgrade.adoc[Spring Boot upgrade]
 ** xref:platform-2.1-to-5.0/across-core.adoc[Across core changes]
+** xref:platform-2.1-to-5.0/across-hibernate-module.adoc[Across Hibernate Module]
 ** xref:platform-2.1-to-5.0/view-elements.adoc[ViewElement infrastructure]
 ** xref:platform-2.1-to-5.0/bootstrap-4.adoc[Bootstrap 4 upgrade]
 ** xref:platform-2.1-to-5.0/standard-modules.adoc[Standard module changes]
