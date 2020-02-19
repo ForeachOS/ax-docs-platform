@@ -26,7 +26,7 @@ The following modules no longer start their own module `ApplicationContext`:
 
 == SpringSecurityModule
 
-Most security configurations that used Spring Boot 1.5 defaults (for example for Actuator stuff) will need to be reviewed.
+Most security configurations that used Spring Boot 1.5 defaults (for example Actuator) will need to be reviewed.
 
 * `SpringSecurityWebConfigurer` and `SpringSecurityWebConfigurerAdapter` have been replaced by a single `AcrossWebSecurityConfigurer` interface
 ** modules can still provide either `AcrossWebSecurityConfigurer` or directly `WebSecurityConfigurerAdapter`, with the former being the preferred option for simple security configurations
@@ -50,10 +50,13 @@ Mostly Spring Data related changes.
 In previous version a `Sort` could be `null` whereas now a `Sort.unsorted()` is used in Spring Data.
 According changes in EntityModule have been done, passing `null` as a `Sort` should be avoided.
 
+=== Oauth2Module
+
+* Renamed `UserDetailsOAuth2AuthenticationSerializer` to `SecurityPrincipalIdOAuth2AuthenticationSerializer`
+
 == SpringMobileModule
 
 Device specific Thymeleaf view resolving only works with the `.html` extension out of the box.
 The previous `.thtml` extension is no longer supported.
 
 WARNING: Spring Mobile is no longer part of Spring Platform Cairo, this indicates the project is probably not as much up-to-date as other Spring projects and its future might be uncertain.
-
