@@ -38,6 +38,9 @@ The presence of this annotation will no longer have any effect on component crea
 ** Use the regular `@ConditionalOnExpression` instead.
 Any previous condition using `currentModule` can use `@'across.currentModule'` instead.
 
+* `HikariDataSourceHelper`
+** Support is dropped in favour of the Spring Boot DataSourceBuilder and datasource properties.
+
 .Across web
 * `AcrossWebDynamicServletConfigurer`
 ** Use a `ServletContextInitializer` instead.

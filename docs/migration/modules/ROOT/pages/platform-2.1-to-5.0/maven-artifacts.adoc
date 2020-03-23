@@ -85,7 +85,7 @@ Do not remove `<build><finalName>...</finalName></build>` if you use it.
 You can probably remove:
 
 * maven-release-plugin
-* maven-compiler-plugin (if you don't required source/target JDK11)
+* maven-compiler-plugin (if you don't require source/target JDK11)
 * maven-jar-plugin (most of it is handled by `across-application-parent`)
 
 You may need to keep the `spring-boot-maven-plugin`, but you can trim it down to:
