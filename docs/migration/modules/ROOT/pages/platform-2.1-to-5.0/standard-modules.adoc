@@ -36,7 +36,7 @@ Most security configurations that used Spring Boot 1.5 defaults (for example Act
 *** use of `@AuthenticationPrincipal` can be replaced with `@CurrentSecurityPrincipal` instead of `@AuthenticationPrincipal`
 ** `CurrentSecurityPrincipalProxy.isAuthenticated()` now returns `false` with an anonymous authentication
 * Spring Boot no longer applies custom security to any endpoint, meaning that you will now have to manually apply the security you want by providing your own configurations
-* if there is no `WebSecurityConfigurerAdapter` (or `AcrossWebSecurityConfigurer`  the default Spring security adapter will secure everything
+* if there is no `WebSecurityConfigurerAdapter` (or `AcrossWebSecurityConfigurer`)  the default Spring security adapter will secure everything
 ** if you have SpringSecurityModule but do not want to have security applied, you should manually add a configuration that ignores everything
 * Password encoding features have been modified, if you want to specify in memory users with a default password, you probably have to migrate your old code and prefix the password with `\{noop}` to avoid a no `PasswordEncoder` exception
 
@@ -53,7 +53,7 @@ According changes in EntityModule have been done, passing `null` as a `Sort` sho
 `NotBlank`, `NotEmpty` and `Email` validation annotations have moved from the `org.hibernate.validator.constraints` package to `javax.validation.constraints` package.
 
 
-=== Oauth2Module
+=== OAuth2Module
 
 * Renamed `UserDetailsOAuth2AuthenticationSerializer` to `SecurityPrincipalIdOAuth2AuthenticationSerializer`
 

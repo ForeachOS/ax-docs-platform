@@ -11,7 +11,7 @@ It mainly focuses on upgrade related changes: usually breaking changes or new fe
 
 == State of the migration guide
 
-Current Platform development version is `5.0.0-SNAPSHOT`, upgrading to Spring Boot 2.1.
+Current Platform development version is `5.0.0.RELEASE`, upgrading to Spring Boot 2.1.
 
 
 
