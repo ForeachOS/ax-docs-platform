@@ -1,0 +1,15 @@
+= Across Hibernate Module changes
+
+== BasicRepository interceptor
+
+Since `BasicRepository` is `@Deprecated` and shouldn't be used anymore,
+we have disabled the default registration of the `BasicRepositoryInterceptor`.
+
+The default behaviour is now:
+
+`across-hibernate.register-repository-interceptor=false`.
+
+If you still use interceptors on `BasicRepository` it is strongly recommend to switch to JPA repositories.
+As an alternative you can rever to the old behaviour by setting the property to `across-hibernate.register-repository-interceptor=true`.
+
+The behaviour for `JpaRepositoryInterceptor` remains unchanged.

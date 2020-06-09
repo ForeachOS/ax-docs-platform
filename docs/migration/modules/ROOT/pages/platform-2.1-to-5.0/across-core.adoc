@@ -1,8 +1,13 @@
+= Across core changes
+
+== AcrossContext
+
+A new `AcrossContextInfrastructureModule` is now added to every AcrossContext as the very first module.
+Like the `AcrossContextPostProcessorModule` it can be used by other modules as an extension point.
 
 == Auto-configuration support
 
 * `across.configuration` has been dropped in favour of `across-configuration.yml` which allows more advanced configuration
-
 
 === Removal of deprecated elements
 
@@ -32,6 +37,9 @@ The presence of this annotation will no longer have any effect on component crea
 * `@AcrossCondition`
 ** Use the regular `@ConditionalOnExpression` instead.
 Any previous condition using `currentModule` can use `@'across.currentModule'` instead.
+
+* `HikariDataSourceHelper`
+** Support is dropped in favour of the Spring Boot DataSourceBuilder and datasource properties.
 
 .Across web
 * `AcrossWebDynamicServletConfigurer`
@@ -63,3 +71,34 @@ The following Across module properties have been modified:
 |`across.web`
 
 |===
+
+== Extension modules
+
+The ability to extend existing module configuration has been expanded.
+These features are available on `@ModuleConfiguration` or through manipulating the `ModuleBootstrapConfig` through the lifecycle events or `prepareForBootstrap()`.
+
+=== Deferred configuration
+By default additional configurations are added deferred, meaning they will be added after the initial module configuration.
+It is now possible to explicitly add configuration as non-deferred, before the default module configuration set.
+
+This allows more flexibility when working with conditionals in the original module configurations.
+
+=== Optional configuration
+The ability to label a configuration as optional has been added to `@ModuleConfiguration`.
+An optional configuration will not cause the module `ApplicationContext` to be started.
+
+=== Skipped bootstrap status
+A module with only optional configurations will skip the bootstrapping of its own `ApplicationContext`.
+As of Across 5.0.0 these modules will no longer be disabled, but will get a specific bootstrap status: `Skipped`.
+
+Existing code might break when expecting any enabled AcrossModule to automatically have an `ApplicationContext`.
+Consumer code should be adjusted to check for the actual bootstrapping using for example `AcrossModuleInfo.isBootstrapped()`.
+
+=== Extension module
+The above changes make it possible to define a module as an "extension" module.
+An extension module has a regular module descriptor but only extends other modules with additional configuration.
+
+Use a this approach when you do not require a separate module context for the infrastructure you provide but you do want your code to behave as a separate module with regards to configuration and dependencies.
+
+
+

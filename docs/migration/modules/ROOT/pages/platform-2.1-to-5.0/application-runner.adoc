@@ -1,5 +1,4 @@
-
-== New Across application runner
+= Across application runner
 
 Across now has an `AcrossApplicationRunner` which can be used instead of a regular `SpringApplication`.
 It uses a custom `BeanFactory` for the root `ApplicationContext`, directly supporting exposed beans.

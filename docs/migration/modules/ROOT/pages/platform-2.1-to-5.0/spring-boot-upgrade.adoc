@@ -1,29 +1,28 @@
-== General breaking changes
+= Spring Boot upgrade
 
-https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-2.0-Release-Notes
+== Useful reads
 
-https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-Security-2.0
+* https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-2.0-Release-Notes
+* https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-Security-2.0
+* https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-2.0-Migration-Guide
+* https://spring.io/blog/2017/11/01/spring-security-5-0-0-rc1-released#password-encoding
 
-https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-2.0-Migration-Guide
-
-https://spring.io/blog/2017/11/01/spring-security-5-0-0-rc1-released#password-encoding
-
-=== Module developers
+== Module developers
 
 * Spring Boot property relaxed binding has changed, you must now use the canonical format in code when referencing a property
 ** see https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-2.0-Migration-Guide#relaxed-binding
 
-=== Property renaming
+== Property renaming
 
 A lot of Spring Boot properties have been renamed for consistency and to differ between Servlet and Webflux setups.
 See the Boot 2.0 migration guide for more information on the new properties.
 
-=== Dependencies
+== Dependencies
 
 * artifact `org.hibernate:hibernate-validator` has been moved to `org.hibernate.validator:hibernate-validator`
 ** you should revise your application dependency tree to avoid pulling it in twice, use `org.hibernate.validator` to ensure you have the latest version
 
-=== Spring libraries
+== Spring libraries
 
 * The behavior or `spring.config.location` has been changed, to get the old behavior `spring.config.additional-location` should be used instead: https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-2.0-Migration-Guide#configuration-location
 
