@@ -1,4 +1,4 @@
-* xref:platform-2.1-to-5.0/index.adoc[2.1.x to 5.0.0]
+* xref:platform-2.1-to-5.0/index.adoc[2.1.x to 5.0.x]
 ** xref:platform-2.1-to-5.0/maven-artifacts.adoc[Maven artifact changes]
 ** xref:platform-2.1-to-5.0/application-runner.adoc[Across application runner]
 ** xref:platform-2.1-to-5.0/spring-boot-upgrade.adoc[Spring Boot upgrade]

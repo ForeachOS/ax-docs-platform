@@ -2,6 +2,49 @@
 
 In general most modules have breaking changes regarding Spring Data repositories, where single instance queries will now always return `Optional`.
 
+== Bootstrap 4 related changes
+
+Most of the theming resources have moved from the standard modules to a separate module, being AdminWebThemesModule.
+As such, modules on their own will render a default bootstrap layout without the classic styling.
+
+To bring back the original theme when upgrading your application, you can specify the following artifact in your pom file:
+[source,xml,indent=0]
+[subs="verbatim,quotes,attributes"]
+.pom.xml
+----
+    <dependencies>
+        <dependency>
+            <groupId>com.foreach.across.modules</groupId>
+            <artifactId>ax-bootstrap-theme</artifactId>
+        </dependency>
+    </dependencies>
+----
+
+Then you have to activate the module in the application descriptor:
+[source,java,indent=0]
+[subs="verbatim,quotes,attributes"]
+.MyApplication.java
+----
+@AcrossApplication(
+		modules = {
+				// other modules...
+				AdminWebThemesModule.NAME
+		}
+)
+public class MyApplication {
+    // ...
+}
+----
+
+and finally you can activate the classic theme through the application properties:
+[source,yaml,indent=0]
+[subs="verbatim,quotes,attributes"]
+.application.yml
+----
+adminWebModule:
+    theme: classic
+----
+
 == Extension modules
 
 Some modules are now considered "extension" modules and no longer start their own `ApplicationContext`.

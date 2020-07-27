@@ -89,7 +89,7 @@ An optional configuration will not cause the module `ApplicationContext` to be s
 
 === Skipped bootstrap status
 A module with only optional configurations will skip the bootstrapping of its own `ApplicationContext`.
-As of Across 5.0.0 these modules will no longer be disabled, but will get a specific bootstrap status: `Skipped`.
+As of Across 5.0.1 these modules will no longer be disabled, but will get a specific bootstrap status: `Skipped`.
 
 Existing code might break when expecting any enabled AcrossModule to automatically have an `ApplicationContext`.
 Consumer code should be adjusted to check for the actual bootstrapping using for example `AcrossModuleInfo.isBootstrapped()`.

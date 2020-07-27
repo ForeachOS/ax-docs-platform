@@ -52,7 +52,7 @@ And on top of your pom.xml you should add:
 <parent>
     <groupId>com.foreach.across</groupId>
     <artifactId>across-application-parent</artifactId>
-    <version>5.0.0.RELEASE</version>
+    <version>5.0.1.RELEASE</version>
     <relativePath/>
 </parent>
 ----
@@ -159,7 +159,7 @@ If you are using a `standard-module-bom` in a third party module, you can use th
 <parent>
     <groupId>com.foreach.across</groupId>
     <artifactId>across-module-parent</artifactId>
-    <version>5.0.0.RELEASE</version>
+    <version>5.0.1.RELEASE</version>
 </parent>
 ----
 
@@ -326,7 +326,7 @@ If you are already using another `<parent>` in your POM structure, you should st
         <dependency>
             <groupId>com.foreach.across</groupId>
             <artifactId>across-application-parent</artifactId>
-            <version>5.0.0.RELEASE</version>
+            <version>5.0.1.RELEASE</version>
             <type>pom</type>
             <scope>import</scope>
         </dependency>
