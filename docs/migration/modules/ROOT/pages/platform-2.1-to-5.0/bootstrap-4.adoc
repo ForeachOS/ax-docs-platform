@@ -19,7 +19,7 @@ In the following sections the most radical changes are listed.
 * checkboxes and radio buttons have been upgraded the https://getbootstrap.com/docs/4.3/components/forms/#checkboxes-and-radios-1[custom variant]
 ** unwrapped checkboxes are still rendered using the browser default
 
-* added strongly typed helper classes for boostrap 4 types
+* added strongly typed helper classes for bootstrap 4 types
 * updated various libraries amongst which some have breaking changes
 ** Eonasdan Datepicker to https://tempusdominus.github.io/bootstrap-4/[Tempus Dominus]
 *** requires a control name to be registered on the element.
