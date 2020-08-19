@@ -137,9 +137,9 @@ If you use the `build.properties` you need to migrate these values into `applica
 [subs="verbatim,quotes,attributes"]
 ----
 # Processed by maven - leave as is
-build.number: @build.revision@
-applicationInfo.buildId: @pom.version@-@build.revision@
-applicationInfo.buildDate: @timestamp@
+build.number: '@build.revision@'
+applicationInfo.buildId: '@pom.version@-@build.revision@'
+applicationInfo.buildDate: '@timestamp@'
 ----
 
 Note that variables which need to be replaced by resource filtering are delimited by `@property@` instead of `${property}`.
