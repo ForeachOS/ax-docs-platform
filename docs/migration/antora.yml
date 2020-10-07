@@ -1,5 +1,5 @@
 name: migration
 title: Migration guides
-version: master
+version: 5.1.0-SNAPSHOT
 nav:
 - modules/ROOT/nav.adoc
