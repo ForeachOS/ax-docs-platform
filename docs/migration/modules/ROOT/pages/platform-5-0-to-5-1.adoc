@@ -162,3 +162,7 @@ You can also use the Spring Boot configuration property `spring.data.jpa.reposit
 Following the deprecation of `Session.createCriteria()`, `BasicRevisionBasedRepository` has been deprecated.
 
 It has been replaced by `BasicRevisionBasedJpaRepository` which uses JPA specifications.
+
+== Spring Security Module
+
+If you are using `SwitchUserGrantedAuthority` in your code (unit test), the `Authentication` parameter cannot be `null` anymore.
