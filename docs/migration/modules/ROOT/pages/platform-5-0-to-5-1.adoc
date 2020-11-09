@@ -140,3 +140,25 @@ GrapQL has been updated to more recent versions
 
 These dependencies have moved to a new package: `graphql.kickstart.tools` instead of `com.oembedler.moon.graphql`.
 The older dependencies may still work if you hardcode them, but it is recommended to switch to the new versions.
+
+== Across Hibernate Module
+
+=== Sort.by and PageRequest.of changes
+
+Spring Data Commons has deprecated the constructor calls for `Sort` and `PageRequest`.
+
+You should use the static methods `PageRequest.of()` and `Sort.by() instead.
+
+=== JPA repositories Bootstrap Mode
+
+You can now use the `BootstrapMode` on `@EnableAcrossJpaRepositories` to use `DEFERRED` or `LAZY` repositories.
+
+Only JPA repositories scanned by the annotation will be lazy or deferred.
+
+You can also use the Spring Boot configuration property `spring.data.jpa.repositories.bootstrap-mode` to set this on all your repositories.
+
+=== BasicRevisionBasedRepository
+
+Following the deprecation of `Session.createCriteria()`, `BasicRevisionBasedRepository` has been deprecated.
+
+It has been replaced by `BasicRevisionBasedJpaRepository` which uses JPA specifications.
