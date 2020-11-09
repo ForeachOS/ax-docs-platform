@@ -24,7 +24,15 @@ NOTE: This guide is not a full overview of all new features and changes in Acros
 It mainly focuses on upgrade related changes: usually breaking changes or new features that impact application/module configuration.
 --
 
+== Across Platform
+
+=== JUnit5
+
+JUnit5 is now a first class dependency when you pull in `across-test`.
+You can still use JUnit4 in your project (or `junit-jupiter-vintage`) but it's recommend to start switching towards JUnit5.
+
 == Across Core
+
 === Deprecated Spring Boot properties
 
 * Some Spring Boot properties have been removed in Spring Boot 2.2 and 2.3, if you still use them you should migrate them
@@ -33,9 +41,25 @@ It mainly focuses on upgrade related changes: usually breaking changes or new fe
 ** `spring.http.converters.preferred-json-mapper` -> `spring.mvc.converters.preferred-json-mapper`
 ** `spring.http.multipart.enabled` -> `spring.servlet.multipart.enabled`
 
+=== Deprecated/Bumped library versions
+
+Some deprecated/outdated libraries have been removed from `across-core-dependencies`.
+You can still use them but you will have to include them manually in your project.
+
+Removed:
+
+* cglib:cglib:3.1
+
+Updated:
+
+* commons-collections4:4.4
+* mysql:mysql-connector-java:8.0.21 (now follows `spring-boot-dependencies`)
+
 === HttpHiddenMethodFilter
 
-If you are using the `HttpHiddenMethodFilter` in your project, you must manually reinclude it. It has been removed from Spring Boot 2.3 as a default inclusion. See https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-2.2-Release-Notes)
+If you are using the `HttpHiddenMethodFilter` in your project, you must manually reinclude it.
+It has been removed from Spring Boot 2.3 as a default inclusion.
+See https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-2.2-Release-Notes)
 
 === Empty @RestController logic change
 
@@ -56,9 +80,9 @@ class PersonController {
 }
 ```
 
-Before Spring Framework 5.2 an empty `@RestController` would automatically match `**`. This has been change this Spring Framework 5.2 because it was behaving as default `@RequestMapping()` endpoint. The change was done in https://github.com/spring-projects/spring-framework/issues/22543 and is a breaking change.
+Before Spring Framework 5.2 an empty `@RestController` would automatically match `**`.This has been change this Spring Framework 5.2 because it was behaving as default `@RequestMapping()` endpoint.The change was done in https://github.com/spring-projects/spring-framework/issues/22543 and is a breaking change.
 
-You should scan occurences of empty `@RestController` annotations and explicitly match them with `@RequestMapping("****")`. This is a common scenario if you are using *CustomRequestMapping* or *RequestCondition*
+You should scan occurences of empty `@RestController` annotations and explicitly match them with `@RequestMapping("****")`.This is a common scenario if you are using *CustomRequestMapping* or *RequestCondition*
 
 The above controller should look like:
 
@@ -100,4 +124,19 @@ This means you might have to change `com.datastax.driver.core.Session` to `com.d
 
 === Elasticsearch
 
-Switch to the Rest client if possible the native elasticsearch template is deprecated.
+Switch to the Rest client if possible, the native elasticsearch template is being deprecated.
+
+=== Spring Boot Admin
+
+Spring Boot Admin has been updated to version 2.3.0 to align with Spring Boot.
+If you are using a hardcoded version, please make sure you update it.
+
+=== GraphQL
+
+GrapQL has been updated to more recent versions
+
+* com.graphql-java-kickstart:graphql-spring-boot-starter:8.0.0
+* com.graphql-java-kickstart:graphql-java-tools:6.2.0
+
+These dependencies have moved to a new package: `graphql.kickstart.tools` instead of `com.oembedler.moon.graphql`.
+The older dependencies may still work if you hardcode them, but it is recommended to switch to the new versions.
