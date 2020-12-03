@@ -18,7 +18,14 @@
 [abstract]
 --
 Platform 5.1.0 is bound to Across 5.1.0.
-Upgrading to Platform 2.1.0 usually requires you to make some configuration and code changes to your applications.
+Upgrading to Platform 5.1.0 usually requires you to make some configuration and code changes to your applications.
+
+Most of these changes are required due to deprecations/changes in Spring Boot 2.2 and Spring Boot 2.3
+
+If you are coming from Platform 5.0.x, make sure you read and follow the release for:
+
+* Spring Boot 2.2: https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-2.2-Release-Notes
+* Spring Boot 2.3: https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-2.3-Release-Notes
 
 NOTE: This guide is not a full overview of all new features and changes in Across or any of its modules.
 It mainly focuses on upgrade related changes: usually breaking changes or new features that impact application/module configuration.
@@ -36,7 +43,7 @@ You can still use JUnit4 in your project (or `junit-jupiter-vintage`) but it's r
 === Deprecated Spring Boot properties
 
 * Some Spring Boot properties have been removed in Spring Boot 2.2 and 2.3, if you still use them you should migrate them
-** `spring.http.encoding.* -> `server.servlet.encoding.*
+** `spring.http.encoding.* -> `server.servlet.encoding.*`
 ** `spring.http.log-request-details` -> `spring.mvc.log-request-details (Spring MVC) or `spring.codec.log-request-details` (Spring WebFlux)
 ** `spring.http.converters.preferred-json-mapper` -> `spring.mvc.converters.preferred-json-mapper`
 ** `spring.http.multipart.enabled` -> `spring.servlet.multipart.enabled`
@@ -67,7 +74,8 @@ Since Spring Framework 5.2 a change has been made in how `@RestController()` (wi
 
 The following example might not behave like before:
 
-```
+[source,java,indent=0]
+----
 @RestController
 class PersonController {
 
@@ -78,7 +86,7 @@ class PersonController {
     }
 
 }
-```
+----
 
 Before Spring Framework 5.2 an empty `@RestController` would automatically match `**`.This has been change this Spring Framework 5.2 because it was behaving as default `@RequestMapping()` endpoint.The change was done in https://github.com/spring-projects/spring-framework/issues/22543 and is a breaking change.
 
@@ -86,7 +94,8 @@ You should scan occurences of empty `@RestController` annotations and explicitly
 
 The above controller should look like:
 
-```
+[source,java,indent=0]
+----
 @RestController
 @RequestMapping("**")
 class PersonController {
@@ -98,7 +107,7 @@ class PersonController {
     }
 
 }
-```
+----
 
 == Across Autoconfigure
 === Hateos classes have been renamed
