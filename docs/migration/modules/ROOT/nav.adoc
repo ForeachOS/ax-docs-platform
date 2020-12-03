@@ -1,3 +1,4 @@
+* xref:platform-5.0-to-5.1/index.adoc[5.0.x to 5.1.x]
 * xref:platform-2.1-to-5.0/index.adoc[2.1.x to 5.0.x]
 ** xref:platform-2.1-to-5.0/maven-artifacts.adoc[Maven artifact changes]
 ** xref:platform-2.1-to-5.0/application-runner.adoc[Across application runner]
